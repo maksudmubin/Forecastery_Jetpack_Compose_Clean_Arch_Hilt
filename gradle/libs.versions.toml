@@ -17,7 +17,7 @@ material = "1.7.5"
 navigationCompose = "2.8.4"
 navigationRuntimeKtx = "2.8.4"
 swiperefreshlayout = "1.1.0"
-okhttpprofiler = "1.0.8"
+okhttpprofiler = "1.1.1"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 
@@ -45,7 +45,7 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
-okhttpprofiler = { group = "com.localebro", name = "okhttpprofiler", version.ref = "okhttpprofiler" }
+okhttpprofiler = { group = "io.nerdythings", name = "okhttp-profiler", version.ref = "okhttpprofiler" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
