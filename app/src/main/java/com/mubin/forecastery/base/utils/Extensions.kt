@@ -1,6 +1,11 @@
 package com.mubin.forecastery.base.utils
 
+import android.content.Context
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.mubin.forecastery.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -48,7 +53,7 @@ suspend inline fun <T> executeBodyOrReturnNullSuspended(
  *
  * @see ImageRequest
  */
-/*fun createImageRequest(context: Context, url: String?): ImageRequest {
+fun createImageRequest(context: Context, url: String?): ImageRequest {
     return ImageRequest.Builder(context)
         .data(data = url)
         .dispatcher(dispatcher = Dispatchers.IO)
@@ -60,26 +65,26 @@ suspend inline fun <T> executeBodyOrReturnNullSuspended(
         .diskCachePolicy(policy = CachePolicy.ENABLED)
         .memoryCachePolicy(policy = CachePolicy.ENABLED)
         .build()
-}*/
+}
 
-/*// Composable Extension Fonts
+// Composable Fonts
 
-*//**
+/**
  * Lazy initialization of the Rubik Bold font family.
- *//*
+ */
 val RubikFontBold by lazy { FontFamily(Font(R.font.rubik_bold)) }
 
-*//**
+/**
  * Lazy initialization of the Rubik Medium font family.
- *//*
+ */
 val RubikFontMedium by lazy { FontFamily(Font(R.font.rubik_medium)) }
 
-*//**
+/**
  * Lazy initialization of the Rubik Regular font family.
- *//*
+ */
 val RubikFontRegular by lazy { FontFamily(Font(R.font.rubik_regular)) }
 
-*//**
+/**
  * Lazy initialization of the Gilroy Medium font family.
- *//*
-val GilroyFontMedium by lazy { FontFamily(Font(R.font.gilroy_medium)) }*/
+ */
+val GilroyFontMedium by lazy { FontFamily(Font(R.font.gilroy_medium)) }
