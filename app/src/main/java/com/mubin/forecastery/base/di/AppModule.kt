@@ -1,6 +1,10 @@
 package com.mubin.forecastery.base.di
 
+import com.mubin.forecastery.data.api.ApiService
+import com.mubin.forecastery.data.repo.AppRepositoryImpl
+import com.mubin.forecastery.domain.repo.AppRepository
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
@@ -13,5 +17,14 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 class AppModule {
+
+    /**
+     * Provides an implementation of the AppRepository interface.
+     *
+     * @param apiService An instance of ApiService for network operations.
+     * @return An implementation of AppRepository (AppRepositoryImpl).
+     */
+    @Provides
+    fun provideRepository(apiService: ApiService): AppRepository = AppRepositoryImpl(apiService)
 
 }
