@@ -12,7 +12,7 @@ object MsLogger {
 
     /**
      * Logs a debug message. Only logs if the build is in debug mode.
-     * @param tag The tag for the log message. Defaults to "APLogger".
+     * @param tag The tag for the log message. Defaults to "MsLogger".
      * @param message The message to log.
      */
     fun d(tag: String, message: String) {
@@ -23,7 +23,7 @@ object MsLogger {
 
     /**
      * Logs an info message. Only logs if the build is in debug mode.
-     * @param tag The tag for the log message. Defaults to "APLogger".
+     * @param tag The tag for the log message. Defaults to "MsLogger".
      * @param message The message to log.
      */
     fun i(tag: String, message: String) {
@@ -34,7 +34,7 @@ object MsLogger {
 
     /**
      * Logs a warning message. Only logs if the build is in debug mode.
-     * @param tag The tag for the log message. Defaults to "APLogger".
+     * @param tag The tag for the log message. Defaults to "MsLogger".
      * @param message The message to log.
      */
     fun w(tag: String, message: String) {
@@ -46,7 +46,7 @@ object MsLogger {
     /**
      * Logs an error message. Only logs if the build is in debug mode.
      * Optionally, a Throwable can be logged along with the message.
-     * @param tag The tag for the log message. Defaults to "APLogger".
+     * @param tag The tag for the log message. Defaults to "MsLogger".
      * @param message The message to log.
      * @param throwable Optional throwable to log along with the message.
      */
@@ -62,7 +62,7 @@ object MsLogger {
 
     /**
      * Logs a verbose message. Only logs if the build is in debug mode.
-     * @param tag The tag for the log message. Defaults to "APLogger".
+     * @param tag The tag for the log message. Defaults to "MsLogger".
      * @param message The message to log.
      */
     fun v(tag: String, message: String) {
@@ -74,7 +74,7 @@ object MsLogger {
     /**
      * Logs a formatted message, where the message is created using String.format().
      * Only logs if the build is in debug mode.
-     * @param tag The tag for the log message. Defaults to "APLogger".
+     * @param tag The tag for the log message. Defaults to "MsLogger".
      * @param format The format string (same as String.format()).
      * @param args The arguments to format the message with.
      */
@@ -89,7 +89,7 @@ object MsLogger {
      * Logs a debug message along with the method name and line number of where the log was called.
      * Useful for pinpointing the source of a log message.
      * Only logs if the build is in debug mode.
-     * @param tag The tag for the log message. Defaults to "APLogger".
+     * @param tag The tag for the log message. Defaults to "MsLogger".
      * @param message The message to log.
      */
     fun logDebugWithLocation(tag: String, message: String) {
