@@ -2,14 +2,14 @@ package com.mubin.forecastery.base.di
 
 import android.content.Context
 import com.google.gson.Gson
-import com.itkacher.okprofiler.BuildConfig
-import com.localebro.okhttpprofiler.OkHttpProfilerInterceptor
+import com.mubin.forecastery.BuildConfig
 import com.mubin.forecastery.BuildConfig.API_BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.nerdythings.okhttp.profiler.OkHttpProfilerInterceptor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
