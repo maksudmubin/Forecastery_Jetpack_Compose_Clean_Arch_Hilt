@@ -19,6 +19,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "API_BASE_URL", "${project.property("API_BASE_URL")}")
+        buildConfigField("String", "IMAGE_BASE_URL", "${project.property("IMAGE_BASE_URL")}")
         buildConfigField("String", "API_KEY", "${project.property("API_KEY")}")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -68,6 +69,10 @@ dependencies {
     implementation (libs.coil.compose)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation (libs.accompanist.systemuicontroller)
+    implementation (libs.accompanist.swiperefresh)
+    implementation (libs.accompanist.placeholder.material)
+    implementation (libs.androidx.material.icons.extended.android)
+    implementation (libs.play.services.location)
 
     // Hilt dependency injection
     implementation(libs.hilt.navigation.compose)
