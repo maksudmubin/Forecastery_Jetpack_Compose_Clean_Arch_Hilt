@@ -1,5 +1,5 @@
 [versions]
-accompanistSystemuicontroller = "0.30.1"
+accompanist = "0.30.1"
 agp = "8.7.2"
 coilCompose = "2.4.0"
 devtoolsKsp = "2.0.21-1.0.28"
@@ -16,15 +16,19 @@ composeBom = "2024.11.00"
 material = "1.7.5"
 navigationCompose = "2.8.4"
 navigationRuntimeKtx = "2.8.4"
+playServicesLocation = "21.3.0"
 swiperefreshlayout = "1.1.0"
 okhttpprofiler = "1.1.1"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 
 [libraries]
-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
+accompanist-placeholder-material = { module = "com.google.accompanist:accompanist-placeholder-material", version.ref = "accompanist" }
+accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanist" }
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
+androidx-material-icons-extended-android = { module = "androidx.compose.material:material-icons-extended-android", version.ref = "material" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 hilt = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
@@ -46,6 +50,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 okhttpprofiler = { group = "io.nerdythings", name = "okhttp-profiler", version.ref = "okhttpprofiler" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
