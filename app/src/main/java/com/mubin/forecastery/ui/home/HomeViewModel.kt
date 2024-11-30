@@ -23,6 +23,9 @@ class HomeViewModel @Inject constructor(
     private val useCase: GetWeatherDetailsUseCase
 ) : ViewModel() {
 
+    // Lazy initialization of UI state
+    val uiState by lazy { HomeUiState() }
+
     /**
      * Fetches weather details based on the provided request parameters.
      *
