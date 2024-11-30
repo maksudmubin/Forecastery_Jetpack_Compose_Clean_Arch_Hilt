@@ -1,14 +1,25 @@
 package com.mubin.forecastery.base.utils
 
 import android.content.Context
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.sp
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.mubin.forecastery.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.math.absoluteValue
 
 /**
  * Executes a given suspendable block of code (`body`) within a specific coroutine context
@@ -88,3 +99,39 @@ val RubikFontRegular by lazy { FontFamily(Font(R.font.rubik_regular)) }
  * Lazy initialization of the Gilroy Medium font family.
  */
 val GilroyFontMedium by lazy { FontFamily(Font(R.font.gilroy_medium)) }
+
+fun formatTimezoneOffset(offsetInSeconds: Int?): String {
+    val offsetInHours = (offsetInSeconds ?: 0) / 3600  // Use 0 if offsetInSeconds is null
+    val sign = if (offsetInHours >= 0) "+" else "-"
+    return "GMT $sign${offsetInHours.absoluteValue}"
+}
+
+fun formatUnixTime(unixTime: Int?): String {
+    return unixTime?.let {
+        val date = Date(it.toLong() * 1000)
+        val format = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        format.format(date)
+    } ?: "--"
+}
+
+/**
+ * Dynamically calculates text size based on the length of the description.
+ */
+fun calculateTextSize(description: String, density: Density): Float {
+    val baseSize = with(density) { 14.sp.toPx() }
+    return if (description.length > 20) baseSize * 0.6f // Scale down for long text
+    else baseSize
+}
+
+fun Modifier.shimmerEffect(translateAnim: Float, shimmerColorShades: List<Color>): Modifier {
+    return this.drawWithCache {
+        val gradient = Brush.linearGradient(
+            colors = shimmerColorShades,
+            start = Offset(x = translateAnim, y = 0f),
+            end = Offset(x = translateAnim + 1000f, y = 0f)
+        )
+        onDrawBehind {
+            drawRect(brush = gradient)
+        }
+    }
+}
