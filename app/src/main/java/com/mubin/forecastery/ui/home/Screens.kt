@@ -218,11 +218,11 @@ fun SearchScreen(
     val sortedDistricts = filteredDistricts.sortedBy { if (it.name == "My Current Location") 0 else 1 }
 
     Scaffold(
-        modifier = modifier
-            .padding(WindowInsets.statusBars.asPaddingValues()),
+        modifier = modifier,
         topBar = {
             SearchBar(
                 modifier = Modifier
+                    .padding(WindowInsets.statusBars.asPaddingValues())
                     .fillMaxWidth()
                     .padding(top = 16.dp)
                     .padding(horizontal = 16.dp),
@@ -247,8 +247,8 @@ fun SearchScreen(
                 )
             } else {
                 LazyColumn(
-                    contentPadding = paddingValues,
                     modifier = modifier
+                        .padding(paddingValues)
                         .fillMaxSize()
                         .background(Background)
                 ) {
