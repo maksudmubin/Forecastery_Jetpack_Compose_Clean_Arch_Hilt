@@ -58,7 +58,7 @@ Forecastery_Jetpack_Compose_Clean_Arch_Hilt/
 
 ## 📱 App Screens & Features
 
-1. **Home Screen
+1. **Home Screen**
 
 	-	Location Permission: If location access is required, users are prompted to grant permissions, and if denied, they are shown a custom dialog that directs them to the app settings to enable permissions.
 	-	Weather Overview: The main screen of the app shows the weather details for the user’s location or a selected district. It provides essential information like temperature, humidity, weather conditions, etc., in a clear, easy-to-read format.
@@ -66,11 +66,11 @@ Forecastery_Jetpack_Compose_Clean_Arch_Hilt/
 	-	Pull-to-Refresh: The screen supports pull-to-refresh to fetch the latest weather data.
 	-	Error Handling: In case of an error while fetching weather data, a dialog is displayed to notify the user of the failure, and retrying is possible.
 
-2. **Search Screen
+2. **Search Screen**
 
-	•	District Search: This screen allows users to search for a specific district (e.g., city, town) to get weather information. It contains a search bar at the top where users can type in the district name.
-	•	District List: A list of districts is displayed below the search bar. The list is filtered as the user types in the search bar, and it allows selecting a district to view its weather.
-	•	Current Location Option: The list also includes an option to use the user’s current location for weather details.
+	-	District Search: This screen allows users to search for a specific district (e.g., city, town) to get weather information. It contains a search bar at the top where users can type in the district name.
+	-	District List: A list of districts is displayed below the search bar. The list is filtered as the user types in the search bar, and it allows selecting a district to view its weather.
+	-	Current Location Option: The list also includes an option to use the user’s current location for weather details.
 
 ---
 
