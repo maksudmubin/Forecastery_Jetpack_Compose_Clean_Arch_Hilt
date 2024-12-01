@@ -28,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,11 +44,11 @@ import com.mubin.forecastery.base.utils.executeBodyOrReturnNullSuspended
 import com.mubin.forecastery.base.utils.executionlocker.withExecutionLocker
 import com.mubin.forecastery.data.model.DistrictModel
 import com.mubin.forecastery.data.model.WeatherRequest
-import com.mubin.forecastery.ui.composable.CircularProgressBar
 import com.mubin.forecastery.ui.composable.DistrictItem
 import com.mubin.forecastery.ui.composable.NoDataState
 import com.mubin.forecastery.ui.composable.SearchBar
-import com.mubin.forecastery.ui.composable.ShimmerLoading
+import com.mubin.forecastery.ui.composable.HomeScreenShimmerLoading
+import com.mubin.forecastery.ui.composable.SearchScreenShimmerLoading
 import com.mubin.forecastery.ui.composable.WeatherContent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -170,7 +169,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier // Modifier to customize the composable's layout and appearance
 ) {
     // Remember the state for the pull-to-refresh feature
-    val pullRefreshState = rememberPullRefreshState(refreshing = uiState.isLoading, onRefresh = onRefreshScreen)
+    val pullRefreshState = rememberPullRefreshState(refreshing = uiState.isHomeScreenLoading, onRefresh = onRefreshScreen)
 
     // Scaffold provides a layout structure for the screen, with app bar, FAB, and body content
     Scaffold(
@@ -206,8 +205,8 @@ fun HomeScreen(
                 .background(Background) // Background color or image for the screen
         ) {
             // Display the loading shimmer effect while data is being fetched
-            if (uiState.isLoading) {
-                ShimmerLoading() // Shimmer effect for loading state
+            if (uiState.isHomeScreenLoading) {
+                HomeScreenShimmerLoading() // Shimmer effect for loading state
             } else {
                 // Display different UI based on the presence of response data
                 when {
@@ -258,8 +257,7 @@ fun SearchScreen(
         if (vm.uiState.districtList.isEmpty()) {
             scope.launch {
                 try {
-                    delay(400)
-                    vm.uiState.isLoading = true // Set loading state to true while fetching data
+                    vm.uiState.isSearchScreenLoading = true // Set loading state to true while fetching data
                     val districtList = vm.getDistrictList()
                     if (districtList != null) {
                         vm.uiState.districtList.addAll(districtList)
@@ -268,7 +266,7 @@ fun SearchScreen(
                     // Handle any errors during the data loading
                     MsLogger.e("SearchScreen", "Error loading district list: ${e.localizedMessage}")
                 } finally {
-                    vm.uiState.isLoading = false // Set loading to false after data is loaded
+                    vm.uiState.isSearchScreenLoading = false // Set loading to false after data is loaded
                 }
             }
         }
@@ -312,12 +310,9 @@ fun SearchScreen(
                 .fillMaxSize()
         ) {
             // Show a loading indicator while the data is being fetched
-            if (vm.uiState.isLoading) {
-                CircularProgressBar(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .align(Alignment.Center) // Center the loading indicator
-                )
+            if (vm.uiState.isSearchScreenLoading) {
+                // display shimmer loading effect
+                SearchScreenShimmerLoading(paddingValues)
             } else {
                 // Display the district list inside a LazyColumn
                 LazyColumn(
