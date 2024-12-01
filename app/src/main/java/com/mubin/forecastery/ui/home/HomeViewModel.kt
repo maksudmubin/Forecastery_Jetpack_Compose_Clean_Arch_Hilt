@@ -3,7 +3,7 @@ package com.mubin.forecastery.ui.home
 import androidx.lifecycle.ViewModel
 import com.mubin.forecastery.base.utils.MsLogger
 import com.mubin.forecastery.data.model.WeatherRequest
-import com.mubin.forecastery.data.model.WeatherResponse
+import com.mubin.forecastery.domain.entities.WeatherEntity
 import com.mubin.forecastery.domain.usecases.GetWeatherDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,11 +30,11 @@ class HomeViewModel @Inject constructor(
      * Fetches weather details based on the provided request parameters.
      *
      * @param request The [WeatherRequest] containing latitude, longitude, and unit system.
-     * @return A [WeatherResponse] object containing the weather data, or `null` if the request fails.
+     * @return A [WeatherEntity] object containing the weather data, or `null` if the request fails.
      *
      * This function is executed in the `IO` context for offloading heavy tasks from the main thread.
      */
-    suspend fun getWeatherDetails(request: WeatherRequest): WeatherResponse? = withContext(Dispatchers.IO) {
+    suspend fun getWeatherDetails(request: WeatherRequest): WeatherEntity? = withContext(Dispatchers.IO) {
         // Log the initiation of the API call
         MsLogger.d("HomeViewModel", "Fetching weather details with request: $request")
 
