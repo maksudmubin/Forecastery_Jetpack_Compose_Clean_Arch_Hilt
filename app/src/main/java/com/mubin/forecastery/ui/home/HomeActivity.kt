@@ -165,7 +165,7 @@ class HomeActivity : ComponentActivity() {
                 )
 
                 // Navigation Host to handle screen navigation
-                WeatherAppNavHost(navController = navController, uiState = vm.uiState)
+                WeatherAppNavHost(navController = navController, vm = vm)
             }
         }
     }
