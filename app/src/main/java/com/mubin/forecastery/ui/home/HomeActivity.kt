@@ -117,7 +117,7 @@ class HomeActivity : ComponentActivity() {
                     if (vm.uiState.loadData) {
                         scope.launch {
                             executeBodyOrReturnNullSuspended {
-                                vm.uiState.isLoading = true
+                                vm.uiState.isHomeScreenLoading = true
                                 vm.uiState.weatherRequest?.let { request ->
                                     // Fetch weather details based on the location request
                                     val response = vm.getWeatherDetails(request)
@@ -130,7 +130,7 @@ class HomeActivity : ComponentActivity() {
                                         vm.uiState.loadData = false
                                     }
                                 }
-                                vm.uiState.isLoading = false
+                                vm.uiState.isHomeScreenLoading = false
                             }
                         }
                     }
