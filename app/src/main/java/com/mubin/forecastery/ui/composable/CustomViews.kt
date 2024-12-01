@@ -89,7 +89,7 @@ import com.mubin.forecastery.base.utils.formatTimezoneOffset
 import com.mubin.forecastery.base.utils.formatUnixTime
 import com.mubin.forecastery.base.utils.shimmerEffect
 import com.mubin.forecastery.data.model.DistrictModel
-import com.mubin.forecastery.data.model.WeatherResponse
+import com.mubin.forecastery.domain.entities.WeatherEntity
 import com.mubin.forecastery.ui.home.HomeUiState
 import com.mubin.forecastery.ui.home.WeatherItem
 import java.util.Locale
@@ -221,7 +221,7 @@ fun CustomAlertDialog(
  */
 @Composable
 fun WeatherContent(
-    weatherResponse: WeatherResponse, // Weather data to be displayed
+    weatherResponse: WeatherEntity, // Weather data to be displayed
     onSearchClick: () -> Unit // Action to perform when search is clicked
 ) {
     Column(
@@ -236,14 +236,11 @@ fun WeatherContent(
             modifier = Modifier.fillMaxWidth(), // Row fills the parent's width
             verticalAlignment = Alignment.CenterVertically // Align items vertically
         ) {
-            weatherResponse.weather?.firstOrNull()?.icon?.let { iconId ->
-                // Weather icon with curved description text
-                WeatherIconWithCurvedText(
-                    iconId = iconId,
-                    description = weatherResponse.weather?.firstOrNull()?.description.orEmpty()
-                        .replaceFirstChar { it.titlecase(Locale.ROOT) } // Capitalize first letter
-                )
-            }
+            WeatherIconWithCurvedText(
+                iconId = weatherResponse.icon,
+                description = weatherResponse.description
+                    .replaceFirstChar { it.titlecase(Locale.ROOT) } // Capitalize first letter
+            )
 
             // Display location name, temperature, and feels-like info
             Column(modifier = Modifier.padding(start = 16.dp)) {
@@ -252,7 +249,7 @@ fun WeatherContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = weatherResponse.name.orEmpty(), // City name
+                        text = weatherResponse.locationName, // City name
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.White, // White color for text
                         textAlign = TextAlign.Center, // Center-align text
@@ -269,12 +266,12 @@ fun WeatherContent(
                     )
                 }
                 Text(
-                    text = "${weatherResponse.main?.temp?.toInt() ?: "--"}°C", // Current temperature
+                    text = "${weatherResponse.temperature.toInt()}°C", // Current temperature
                     style = MaterialTheme.typography.displayLarge, // Large text for emphasis
                     color = Color.White // White color
                 )
                 Text(
-                    text = "Feels like ${weatherResponse.main?.feelsLike}°C", // Feels-like temperature
+                    text = "Feels like ${weatherResponse.feelsLike}°C", // Feels-like temperature
                     style = MaterialTheme.typography.bodyLarge, // Smaller text style
                     color = Color.White, // White color
                     textAlign = TextAlign.Center
@@ -377,16 +374,16 @@ fun WeatherIconWithCurvedText(
  * @param weatherResponse The weather data to display in the grid.
  */
 @Composable
-fun WeatherDetailGrid(weatherResponse: WeatherResponse) {
+fun WeatherDetailGrid(weatherResponse: WeatherEntity) {
     val weatherItems = listOf(
-        WeatherItem("Humidity", "${weatherResponse.main?.humidity ?: "--"}%", Icons.Default.WaterDrop),
-        WeatherItem("Pressure", "${weatherResponse.main?.pressure ?: "--"} hPa", Icons.Default.Speed),
-        WeatherItem("Wind Speed", "${weatherResponse.wind?.speed ?: "--"} m/s", Icons.Default.Air),
-        WeatherItem("Cloudiness", "${weatherResponse.clouds?.all ?: "--"}%", Icons.Default.Cloud),
+        WeatherItem("Humidity", "${weatherResponse.humidity ?: "--"}%", Icons.Default.WaterDrop),
+        WeatherItem("Pressure", "${weatherResponse.pressure ?: "--"} hPa", Icons.Default.Speed),
+        WeatherItem("Wind Speed", "${weatherResponse.windSpeed ?: "--"} m/s", Icons.Default.Air),
+        WeatherItem("Cloudiness", "${weatherResponse.cloudiness ?: "--"}%", Icons.Default.Cloud),
         WeatherItem("Visibility", "${weatherResponse.visibility ?: "--"} m", Icons.Default.Visibility),
-        WeatherItem("Time Zone", formatTimezoneOffset(weatherResponse.timezone), Icons.Default.Public),
-        WeatherItem("Sunrise", formatUnixTime(weatherResponse.sys?.sunrise), Icons.Default.WbSunny),
-        WeatherItem("Sunset", formatUnixTime(weatherResponse.sys?.sunset), Icons.Default.Stars)
+        WeatherItem("Time Zone", formatTimezoneOffset(weatherResponse.timeZone), Icons.Default.Public),
+        WeatherItem("Sunrise", formatUnixTime(weatherResponse.sunrise), Icons.Default.WbSunny),
+        WeatherItem("Sunset", formatUnixTime(weatherResponse.sunset), Icons.Default.Stars)
     )
 
     // Lazy grid for better performance and dynamic content rendering
