@@ -37,7 +37,13 @@ class HomeUiState {
      * A boolean flag indicating whether the UI is in a loading state.
      * When set to true, it typically shows loading indicators (e.g., spinners or progress bars).
      */
-    var isLoading by mutableStateOf(false)
+    var isHomeScreenLoading by mutableStateOf(false)
+
+    /**
+     * A boolean flag indicating whether the UI is in a loading state.
+     * When set to true, it typically shows loading indicators (e.g., spinners or progress bars).
+     */
+    var isSearchScreenLoading by mutableStateOf(false)
 
     /**
      * An object representing the weather request with geographic coordinates.
