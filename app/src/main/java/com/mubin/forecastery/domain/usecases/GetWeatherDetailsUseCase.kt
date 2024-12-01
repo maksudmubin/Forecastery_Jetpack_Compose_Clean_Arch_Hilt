@@ -3,7 +3,7 @@ package com.mubin.forecastery.domain.usecases
 import com.mubin.forecastery.base.utils.MsLogger
 import com.mubin.forecastery.base.utils.UseCase
 import com.mubin.forecastery.data.model.WeatherRequest
-import com.mubin.forecastery.data.model.WeatherResponse
+import com.mubin.forecastery.domain.entities.WeatherEntity
 import com.mubin.forecastery.domain.repo.AppRepository
 import javax.inject.Inject
 
@@ -18,17 +18,17 @@ import javax.inject.Inject
  */
 class GetWeatherDetailsUseCase @Inject constructor(
     private val appRepository: AppRepository
-) : UseCase<WeatherResponse, WeatherRequest>() {
+) : UseCase<WeatherEntity, WeatherRequest>() {
 
     /**
      * Executes the use case with the given parameters to fetch weather details.
      *
      * @param params The [WeatherRequest] containing the latitude, longitude, and unit system.
-     * @return A [WeatherResponse] object containing the weather data, or `null` if the request fails.
+     * @return A [WeatherEntity] object containing the weather data, or `null` if the request fails.
      *
      * Handles any exceptions during the execution and logs them.
      */
-    override suspend fun run(params: WeatherRequest): WeatherResponse? {
+    override suspend fun run(params: WeatherRequest): WeatherEntity? {
         // Log the initiation of the use case
         MsLogger.d("GetWeatherDetailsUseCase", "Executing with params: $params")
 
