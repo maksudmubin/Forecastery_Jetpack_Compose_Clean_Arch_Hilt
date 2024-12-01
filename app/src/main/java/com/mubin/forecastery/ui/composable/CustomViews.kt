@@ -213,160 +213,157 @@ fun CustomAlertDialog(
     }
 }
 
+/**
+ * Displays the main weather content, including weather icon, temperature, and additional weather details.
+ *
+ * @param weatherResponse The weather data to display.
+ * @param onSearchClick Callback invoked when the search action is triggered.
+ */
 @Composable
 fun WeatherContent(
-    weatherResponse: WeatherResponse,
-    onSearchClick: () -> Unit
+    weatherResponse: WeatherResponse, // Weather data to be displayed
+    onSearchClick: () -> Unit // Action to perform when search is clicked
 ) {
     Column(
         modifier = Modifier
-            .padding(16.dp),
-        //.verticalScroll(rememberScrollState()), // Enable scrolling
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp), // Padding around the content
+        //.verticalScroll(rememberScrollState()), // Uncomment for scrollable layout
+        verticalArrangement = Arrangement.spacedBy(16.dp), // Space between elements
+        horizontalAlignment = Alignment.CenterHorizontally // Center horizontally
     ) {
-        // Main Weather Info
-        Row (
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+        // Main weather information (icon, location, and temperature)
+        Row(
+            modifier = Modifier.fillMaxWidth(), // Row fills the parent's width
+            verticalAlignment = Alignment.CenterVertically // Align items vertically
         ) {
-
             weatherResponse.weather?.firstOrNull()?.icon?.let { iconId ->
-
+                // Weather icon with curved description text
                 WeatherIconWithCurvedText(
                     iconId = iconId,
                     description = weatherResponse.weather?.firstOrNull()?.description.orEmpty()
-                        .replaceFirstChar {
-                            if (it.isLowerCase())
-                                it.titlecase(Locale.ROOT)
-                            else
-                                it.toString()
-                        }
+                        .replaceFirstChar { it.titlecase(Locale.ROOT) } // Capitalize first letter
                 )
-
             }
 
-            Column (
-                modifier = Modifier
-                    .padding(start = 16.dp)
-            ) {
+            // Display location name, temperature, and feels-like info
+            Column(modifier = Modifier.padding(start = 16.dp)) {
                 Row(
-                    modifier = Modifier
-                        .clickable {
-                            onSearchClick()
-                        },
+                    modifier = Modifier.clickable { onSearchClick() }, // Search click action
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = weatherResponse.name.orEmpty(),
+                        text = weatherResponse.name.orEmpty(), // City name
                         style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        overflow = TextOverflow.Ellipsis
+                        color = Color.White, // White color for text
+                        textAlign = TextAlign.Center, // Center-align text
+                        overflow = TextOverflow.Ellipsis // Handle overflow gracefully
                     )
-                    Spacer(
-                        modifier = Modifier
-                            .width(2.dp)
-                    )
+                    Spacer(modifier = Modifier.width(4.dp)) // Space between text and icon
                     Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        tint = Color.White
+                        modifier = Modifier
+                            .padding(end = 16.dp) // Add padding to the end
+                            .size(18.dp), // Icon size
+                        imageVector = Icons.Default.Edit, // Edit icon
+                        contentDescription = null, // No accessibility description
+                        tint = Color.White // White color for icon
                     )
-
                 }
                 Text(
-                    text = "${weatherResponse.main?.temp?.toInt() ?: "--"}°C",
-                    style = MaterialTheme.typography.displayLarge,
-                    color = Color.White
+                    text = "${weatherResponse.main?.temp?.toInt() ?: "--"}°C", // Current temperature
+                    style = MaterialTheme.typography.displayLarge, // Large text for emphasis
+                    color = Color.White // White color
                 )
                 Text(
-                    text = "Feels like ${weatherResponse.main?.feelsLike}°C",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
+                    text = "Feels like ${weatherResponse.main?.feelsLike}°C", // Feels-like temperature
+                    style = MaterialTheme.typography.bodyLarge, // Smaller text style
+                    color = Color.White, // White color
                     textAlign = TextAlign.Center
                 )
             }
         }
 
-        // Additional Weather Info
+        // Divider to visually separate the main info and additional details
         HorizontalDivider(
-            modifier = Modifier
-                .padding(top = 4.dp),
-            color = Color.Gray,
-            thickness = 1.dp
+            modifier = Modifier.padding(top = 4.dp), // Add space above the divider
+            color = Color.Gray, // Divider color
+            thickness = 1.dp // Thickness of the divider
         )
+
+        // Grid layout for additional weather details
         WeatherDetailGrid(weatherResponse)
     }
 }
 
+/**
+ * Displays a weather icon with a curved text description beneath it.
+ *
+ * @param iconId The identifier for the weather icon.
+ * @param description A textual description of the weather.
+ */
 @Composable
 fun WeatherIconWithCurvedText(
-    iconId: String,
-    description: String
+    iconId: String, // Icon ID for fetching the weather image
+    description: String // Description to display below the icon
 ) {
     val density = LocalDensity.current
-    val imageSize = 100.dp
-    val textPadding = 16.dp // Padding between the icon and the text curve
-    val letterSpace = 2f // Space between characters
+    val imageSize = 100.dp // Size of the weather icon
+    val textPadding = 16.dp // Space between icon and curved text
+    val letterSpace = 2f // Spacing between characters in the text
 
     Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.size(120.dp) // Ensure enough space for icon and curved text
+        contentAlignment = Alignment.Center, // Center content in the box
+        modifier = Modifier.size(120.dp) // Ensure enough space for both icon and text
     ) {
-        // Weather Icon
+        MsLogger.d("Image_Url_From_Gradle", BuildConfig.IMAGE_BASE_URL + iconId + "@4x.png")
+        // Weather icon image
         SubcomposeAsyncImage(
             modifier = Modifier
-                .background(
-                    color = Color(0xFFB8B8B8),
-                    shape = CircleShape
-                )
+                .background(Color(0xFFB8B8B8), CircleShape) // Circular background for icon
                 .size(imageSize),
             model = createImageRequest(
                 context = LocalContext.current,
-                url = "${BuildConfig.IMAGE_BASE_URL}${iconId}@4x.png"
+                url = "${BuildConfig.IMAGE_BASE_URL}${iconId}@4x.png" // Build image URL
             ),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
+            contentDescription = null, // No accessibility description
+            contentScale = ContentScale.Fit, // Scale the image to fit
             loading = {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressBar()
+                    CircularProgressBar() // Show a loading indicator
                 }
             }
         )
 
-        // Curved Text Below Icon
+        // Curved text below the icon
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val radius = (imageSize.toPx() / 2) + textPadding.toPx() // Radius for the bottom arc
+            val radius = (imageSize.toPx() / 2) + textPadding.toPx() // Radius for the text arc
             val centerX = size.width / 2
             val centerY = size.height / 2
 
-            // Path for the curved text (bottom arc of the circle)
+            // Define path for text along the bottom arc of the circle
             val path = Path().apply {
                 addArc(
                     oval = Rect(
                         center = Offset(centerX, centerY),
                         radius = radius
                     ),
-                    startAngleDegrees = -180f, // Start below the left side
-                    sweepAngleDegrees = -180f  // Sweep across the bottom arc
+                    startAngleDegrees = -180f, // Start from bottom-left
+                    sweepAngleDegrees = -180f // Cover the bottom arc
                 )
             }
 
-            // Text paint configuration
+            // Configure text paint properties
             val textPaint = android.graphics.Paint().apply {
-                color = android.graphics.Color.LTGRAY
-                textSize = calculateTextSize(description, density) // Dynamically adjust text size
-                isAntiAlias = true
-                textAlign = android.graphics.Paint.Align.CENTER
-                letterSpacing = letterSpace / textSize // Adjust letter spacing (proportional to text size)
+                color = android.graphics.Color.LTGRAY // Text color
+                textSize = calculateTextSize(description, density) // Dynamic text size
+                isAntiAlias = true // Smooth edges
+                textAlign = android.graphics.Paint.Align.CENTER // Center-align text
+                letterSpacing = letterSpace / textSize // Adjust spacing based on size
             }
 
-            // Draw the text along the path
+            // Draw text along the arc path
             drawContext.canvas.nativeCanvas.apply {
                 drawTextOnPath(description, path.asAndroidPath(), 0f, 0f, textPaint)
             }
@@ -374,9 +371,13 @@ fun WeatherIconWithCurvedText(
     }
 }
 
+/**
+ * Displays a grid of detailed weather information.
+ *
+ * @param weatherResponse The weather data to display in the grid.
+ */
 @Composable
 fun WeatherDetailGrid(weatherResponse: WeatherResponse) {
-
     val weatherItems = listOf(
         WeatherItem("Humidity", "${weatherResponse.main?.humidity ?: "--"}%", Icons.Default.WaterDrop),
         WeatherItem("Pressure", "${weatherResponse.main?.pressure ?: "--"} hPa", Icons.Default.Speed),
@@ -388,143 +389,176 @@ fun WeatherDetailGrid(weatherResponse: WeatherResponse) {
         WeatherItem("Sunset", formatUnixTime(weatherResponse.sys?.sunset), Icons.Default.Stars)
     )
 
+    // Lazy grid for better performance and dynamic content rendering
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),  // Horizontal spacing between items
-        verticalArrangement = Arrangement.spacedBy(8.dp)  // Vertical spacing between items
+        columns = GridCells.Fixed(2), // Fixed two columns
+        modifier = Modifier.fillMaxSize(), // Grid spans full size
+        horizontalArrangement = Arrangement.spacedBy(16.dp), // Space between columns
+        verticalArrangement = Arrangement.spacedBy(8.dp) // Space between rows
     ) {
         items(weatherItems.size) { index ->
             WeatherInfoCard(
-                label = weatherItems[index].label,
-                value = weatherItems[index].value,
-                icon = weatherItems[index].icon
+                label = weatherItems[index].label, // Label for the detail
+                value = weatherItems[index].value, // Value to display
+                icon = weatherItems[index].icon // Icon for the detail
             )
+        }
+        item{
+            Spacer(modifier = Modifier.height(70.dp))
         }
     }
 }
 
+/**
+ * Represents a single card in the weather detail grid.
+ *
+ * @param label The label for the weather detail.
+ * @param value The value for the detail.
+ * @param icon The icon representing the detail.
+ * @param modifier Modifiers for styling the card.
+ */
 @Composable
-fun WeatherInfoCard(label: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
+fun WeatherInfoCard(
+    label: String, // Label for the detail (e.g., Humidity)
+    value: String, // Value for the detail (e.g., 70%)
+    icon: ImageVector, // Icon representing the detail
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier
-            .padding(bottom = 8.dp)
-            .height(100.dp), // Ensure equal heights
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        )
+            .padding(bottom = 8.dp) // Add padding at the bottom
+            .height(100.dp), // Set a uniform height
+        shape = RoundedCornerShape(8.dp), // Rounded corners for the card
+        elevation = CardDefaults.cardElevation(4.dp), // Elevation for shadow effect
+        colors = CardDefaults.cardColors(containerColor = Surface) // Set container color
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(8.dp), // Padding inside the card
+            horizontalAlignment = Alignment.CenterHorizontally, // Center content horizontally
+            verticalArrangement = Arrangement.Center // Center content vertically
         ) {
             Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Color.LightGray,
-                modifier = Modifier.size(24.dp)
+                imageVector = icon, // Display the icon
+                contentDescription = null, // No accessibility description
+                tint = Color.LightGray, // Icon color
+                modifier = Modifier.size(24.dp) // Size of the icon
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Space between icon and text
             Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
-                textAlign = TextAlign.Center
+                text = label, // Display the label
+                style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray), // Label style
+                textAlign = TextAlign.Center // Center-align text
             )
             Text(
-                text = value,
+                text = value, // Display the value
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    color = Color.White, // White color for value text
+                    fontWeight = FontWeight.Bold // Bold for emphasis
                 ),
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center, // Center-align value text
                 maxLines = 1, // Prevent overflow
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis // Handle long text gracefully
             )
         }
     }
 }
 
+/**
+ * Displays a loading shimmer effect while weather data is being fetched.
+ */
 @Composable
 fun ShimmerLoading() {
+    // Fetch screen width from configuration
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
+
+    // Colors used in the shimmer effect animation
     val shimmerColorShades = listOf(
-        Color.Gray.copy(alpha = 0.6f),
-        Color.Gray.copy(alpha = 0.2f),
-        Color.Gray.copy(alpha = 0.6f)
+        Color.Gray.copy(alpha = 0.6f), // Slightly opaque gray color
+        Color.Gray.copy(alpha = 0.2f), // More transparent gray color
+        Color.Gray.copy(alpha = 0.6f)  // Slightly opaque gray again
     )
-    val transition = rememberInfiniteTransition(label = "")
+
+    // Transition for infinite shimmer animation
+    val transition = rememberInfiniteTransition(label = "Shimmer Transition")
+
+    // Translation animation for shimmer effect
     val translateAnim = transition.animateFloat(
         initialValue = -1000f,
         targetValue = 1000f,
-        animationSpec = infiniteRepeatable(animation = tween(1000, easing = LinearEasing)),
-        label = ""
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing)
+        ),
+        label = "Shimmer Animation"
     )
 
+    // Main layout for shimmer loading items
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .fillMaxSize() // Fill the entire available screen size
+            .padding(16.dp), // Add padding to avoid edge overlaps
+        verticalArrangement = Arrangement.spacedBy(16.dp), // Space between items
     ) {
-        Row (
-            modifier = Modifier
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Row(
+            modifier = Modifier.padding(8.dp), // Padding for the Row
+            verticalAlignment = Alignment.CenterVertically // Center-align contents vertically
         ) {
+            // Circular shimmer effect (e.g., for profile images)
             Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .shimmerEffect(translateAnim.value, shimmerColorShades)
+                    .size(100.dp) // Set size to 100dp
+                    .clip(CircleShape) // Clip the box to a circular shape
+                    .shimmerEffect(translateAnim.value, shimmerColorShades) // Apply shimmer effect
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp)) // Spacer for spacing between items
             Column {
+                // Rectangular shimmer effect (e.g., for text placeholders)
                 Box(
                     modifier = Modifier
-                        .width(screenWidth.times(0.4f))
-                        .height(24.dp)
+                        .width(screenWidth.times(0.4f)) // 40% of screen width
+                        .height(24.dp) // Fixed height
                         .shimmerEffect(translateAnim.value, shimmerColorShades)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Box(
                     modifier = Modifier
-                        .width(screenWidth.times(0.35f))
+                        .width(screenWidth.times(0.35f)) // 35% of screen width
                         .height(46.dp)
                         .shimmerEffect(translateAnim.value, shimmerColorShades)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Box(
                     modifier = Modifier
-                        .width(screenWidth.times(0.3f))
+                        .width(screenWidth.times(0.3f)) // 30% of screen width
                         .height(16.dp)
                         .shimmerEffect(translateAnim.value, shimmerColorShades)
                 )
             }
-
         }
+
+        // Separator line shimmer effect
         Box(
             modifier = Modifier
-                .padding(top = 2.dp)
-                .fillMaxWidth()
-                .height(1.dp)
+                .padding(top = 2.dp) // Slight top padding
+                .fillMaxWidth() // Full-width separator
+                .height(1.dp) // Fixed height for line
                 .shimmerEffect(translateAnim.value, shimmerColorShades)
         )
+
+        // Repeat shimmer rows (e.g., grid items)
         repeat(4) {
             Row {
+                // First column shimmer item
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(100.dp)
+                        .weight(1f) // Distribute width equally
+                        .height(100.dp) // Fixed height
                         .shimmerEffect(translateAnim.value, shimmerColorShades)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(16.dp)) // Space between columns
+                // Second column shimmer item
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -536,131 +570,179 @@ fun ShimmerLoading() {
     }
 }
 
+/**
+ * A composable function that displays a "No Data" state.
+ * It shows a button to grant location permission if it is not granted,
+ * or displays a message indicating the unavailability of weather data.
+ *
+ * @param uiState The state containing the necessary information, such as permission status.
+ */
 @Composable
 fun NoDataState(uiState: HomeUiState) {
+    // Obtain the current context for navigation or intent usage
     val context = LocalContext.current
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+    // A box to center-align its content on the screen
+    Box(
+        modifier = Modifier.fillMaxSize(), // Fills the entire screen
+        contentAlignment = Alignment.Center // Centers content within the box
+    ) {
+        // Conditional UI based on permission status
         if (!uiState.permissionGranted) {
+            // Button to guide users to grant location permissions
             Button(
                 onClick = {
+                    // Cast the context to Activity to start an intent
                     val activity = context as? Activity
                     activity?.let {
                         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            // Create a URI pointing to the app's settings page
                             data = Uri.fromParts("package", context.packageName, null)
                         }
-                        it.startActivity(intent)
+                        it.startActivity(intent) // Open settings
                     } ?: run {
+                        // Log a debug message if the context is null
                         MsLogger.d("PermissionDialog", "Unable to open settings; activity context is null.")
                     }
                 },
                 border = BorderStroke(
-                    width = 1.dp, // Border width for the button
-                    color = MaterialTheme.colorScheme.outline // Border color based on theme
+                    width = 1.dp, // Adds a 1dp border around the button
+                    color = MaterialTheme.colorScheme.outline // Border color adapts to the theme
                 )
             ) {
                 Text(
-                    text = "Grant Location Permission", // Button text
-                    color = MaterialTheme.colorScheme.onPrimary // Button text color based on theme
+                    text = "Grant Location Permission", // Button label
+                    color = MaterialTheme.colorScheme.onPrimary // Text color adapts to the theme
                 )
             }
         } else {
+            // Text displayed when permission is granted but no data is available
             Text(
-                text = "No weather data available.",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.LightGray),
-                textAlign = TextAlign.Center
+                text = "No weather data available.", // Message to inform the user
+                style = MaterialTheme.typography.bodyMedium.copy( // Applies medium typography style
+                    color = Color.LightGray // Sets a light gray color for the text
+                ),
+                textAlign = TextAlign.Center // Centers the text alignment
             )
         }
     }
 }
 
-
+/**
+ * A customizable search bar composable for entering and submitting search queries.
+ *
+ * @param query The current text input in the search bar.
+ * @param onQueryChange A lambda function triggered when the query text changes.
+ * @param modifier Modifier for custom styling or layout of the search bar (optional).
+ * @param placeholder The placeholder text shown when the search bar is empty (default is "Search...").
+ * @param onSearch A lambda function triggered when the user presses the "Done" action or submits the query (optional).
+ */
 @Composable
 fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    placeholder: String = "Search...",
-    onSearch: () -> Unit = {}
+    query: String, // Current query in the text field
+    onQueryChange: (String) -> Unit, // Lambda triggered on query text change
+    modifier: Modifier = Modifier, // Modifier for styling or layout
+    placeholder: String = "Search...", // Placeholder text shown when query is empty
+    onSearch: () -> Unit = {} // Lambda triggered when search action occurs
 ) {
+    // A horizontal row to arrange the search icon and text field
     Row(
         modifier = modifier
-            .fillMaxWidth() // Fill the available width
-            .height(56.dp) // Set fixed height for the search bar
-            .clip(RoundedCornerShape(16.dp)) // Apply rounded corners
-            .background(Surface) // Set background color
-            .padding(horizontal = 16.dp, vertical = 8.dp), // Padding inside the search bar
-        verticalAlignment = Alignment.CenterVertically // Vertically center content in the Row
+            .fillMaxWidth() // Makes the search bar occupy full width
+            .height(56.dp) // Sets a fixed height
+            .clip(RoundedCornerShape(16.dp)) // Applies rounded corners
+            .background(Surface) // Sets the background color to `Surface`
+            .padding(horizontal = 16.dp, vertical = 8.dp), // Adds padding inside the bar
+        verticalAlignment = Alignment.CenterVertically // Centers the content vertically
     ) {
-        // Search Icon
+        // Icon for the search bar
         Icon(
-            imageVector = Icons.Default.Search, // Load the search icon
-            tint = Color.White,
-            contentDescription = "Search", // Accessibility content description
-            modifier = Modifier.size(24.dp) // Set icon size
+            imageVector = Icons.Default.Search, // A built-in search icon
+            tint = Color.White, // White color for the icon
+            contentDescription = "Search", // Accessibility description for the icon
+            modifier = Modifier.size(24.dp) // Sets the size of the icon
         )
-        Spacer(modifier = Modifier.width(10.dp)) // Add some space between the icon and the text field
 
-        // Basic Text Field for query input
+        Spacer(modifier = Modifier.width(10.dp)) // Adds space between the icon and text field
+
+        // The text input field for entering search queries
         BasicTextField(
-            modifier = Modifier.fillMaxWidth(), // Allow text field to take full available width
-            value = query, // Bind the current query value
+            modifier = Modifier.fillMaxWidth(), // Makes the text field occupy remaining width
+            value = query, // Binds the current text input
             onValueChange = { newQuery ->
-                MsLogger.d("SearchBar", "Query changed: $newQuery") // Log query change
-                onQueryChange(newQuery) // Invoke onQueryChange lambda when text changes
+                MsLogger.d("SearchBar", "Query changed: $newQuery") // Logs the updated query
+                onQueryChange(newQuery) // Passes the updated query to the parent
             },
-            singleLine = true, // Ensure the text field is single line
-            cursorBrush = SolidColor(Background), // Set cursor color to match background
+            singleLine = true, // Ensures the text field is single-line
+            cursorBrush = SolidColor(Background), // Sets the cursor color
             textStyle = MaterialTheme.typography.bodyMedium.copy(
-                fontFamily = RubikFontRegular, // Set font family
-                fontSize = 14.sp, // Set font size
-                color = Color.White.copy(alpha = 0.5f) // Set text color with opacity
+                fontFamily = RubikFontRegular, // Specifies the font family
+                fontSize = 14.sp, // Sets font size
+                color = Color.White.copy(alpha = 0.5f) // Semi-transparent white text
             ),
             decorationBox = { innerTextField ->
-                // Show placeholder text when the query is empty
+                // Placeholder logic
                 if (query.isEmpty()) {
                     Text(
-                        text = placeholder, // Display placeholder text
+                        text = placeholder, // Placeholder text
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = RubikFontRegular, // Set font family for placeholder
-                            fontSize = 14.sp, // Set font size for placeholder
-                            color = Color.White.copy(alpha = 0.3f) // Lighter color for placeholder
+                            fontFamily = RubikFontRegular, // Placeholder font
+                            fontSize = 14.sp, // Placeholder font size
+                            color = Color.White.copy(alpha = 0.3f) // Lighter placeholder color
                         )
                     )
                 }
-                innerTextField() // Display the actual text field content
+                innerTextField() // Displays the actual text field content
             },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done), // Set IME action to "Done"
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done), // IME action set to "Done"
             keyboardActions = KeyboardActions(onDone = {
-                MsLogger.d("SearchBar", "Search triggered") // Log when search is done
-                onSearch() // Invoke onSearch lambda when "Done" action is triggered
+                MsLogger.d("SearchBar", "Search triggered") // Logs when "Done" action is pressed
+                onSearch() // Triggers the search action
             })
         )
     }
 }
 
+/**
+ * A composable function that represents a single district item in a list.
+ * It displays an icon and the district name, with a click action.
+ *
+ * @param district The data model for the district, containing its name.
+ * @param onClick A lambda function to handle click events on the item.
+ * @param modifier The `Modifier` to style or layout the composable (optional).
+ */
 @Composable
 fun DistrictItem(
-    district: DistrictModel?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    district: DistrictModel?, // Nullable district model containing the name of the district
+    onClick: () -> Unit, // Lambda function triggered when the item is clicked
+    modifier: Modifier = Modifier // Modifier for custom styling and layout adjustments
 ) {
+    // Row to arrange the icon and text horizontally
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .fillMaxWidth() // Ensures the row spans the entire width
+            .clickable { // Makes the row clickable
+                MsLogger.d("DistrictItem", "Clicked on district: ${district?.name ?: "Unknown"}")
+                onClick() // Triggers the provided click action
+            }
+            .padding(16.dp), // Adds padding around the row content
+        verticalAlignment = Alignment.CenterVertically // Aligns content vertically at the center
     ) {
+        // Icon representing the location
         Icon(
-            imageVector = Icons.Default.LocationOn,
-            contentDescription = "Location Icon",
-            tint = MaterialTheme.colorScheme.primary
+            imageVector = Icons.Default.LocationOn, // Built-in location icon
+            contentDescription = "Location Icon", // Accessibility description for the icon
+            tint = MaterialTheme.colorScheme.primary // Icon color adapts to the theme
         )
+
+        // Spacer to add horizontal spacing between the icon and text
         Spacer(modifier = Modifier.width(8.dp))
+
+        // Text to display the district name
         Text(
-            text = district?.name ?: "--",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White
+            text = district?.name ?: "--", // Displays the district name or "--" if null
+            style = MaterialTheme.typography.bodyMedium, // Applies the medium body typography style
+            color = Color.White // Sets the text color to white
         )
     }
 }
