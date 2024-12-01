@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.mubin.forecastery.data.model.DistrictModel
 import com.mubin.forecastery.data.model.WeatherRequest
-import com.mubin.forecastery.data.model.WeatherResponse
+import com.mubin.forecastery.domain.entities.WeatherEntity
 
 /**
  * UI state for managing the data and states related to the home screen.
@@ -49,7 +49,7 @@ class HomeUiState {
      * An object representing the weather response data.
      * Contains the weather data received from an API or other data source, such as temperature, humidity, etc.
      */
-    var response: WeatherResponse? by mutableStateOf(null)
+    var response: WeatherEntity? by mutableStateOf(null)
 
     /**
      * A mutable list containing the district models (locations).
