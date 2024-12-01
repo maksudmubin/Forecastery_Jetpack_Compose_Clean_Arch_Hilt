@@ -1,11 +1,13 @@
 package com.mubin.forecastery.base.di
 
+import android.content.Context
 import com.mubin.forecastery.data.api.ApiService
 import com.mubin.forecastery.data.repo.AppRepositoryImpl
 import com.mubin.forecastery.domain.repo.AppRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
 
@@ -25,6 +27,9 @@ class AppModule {
      * @return An implementation of AppRepository (AppRepositoryImpl).
      */
     @Provides
-    fun provideRepository(apiService: ApiService): AppRepository = AppRepositoryImpl(apiService)
+    fun provideRepository(
+        apiService: ApiService,
+        @ApplicationContext context: Context
+    ): AppRepository = AppRepositoryImpl(apiService, context)
 
 }
