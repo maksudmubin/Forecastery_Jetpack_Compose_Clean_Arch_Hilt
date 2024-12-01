@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import coil.request.CachePolicy
+import coil.request.ErrorResult
 import coil.request.ImageRequest
 import com.mubin.forecastery.R
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.absoluteValue
+import kotlin.math.truncate
 
 /**
  * Executes a given suspendable block of code (`body`) within a specific coroutine context
@@ -66,6 +68,13 @@ suspend inline fun <T> executeBodyOrReturnNullSuspended(
  */
 fun createImageRequest(context: Context, url: String?): ImageRequest {
     return ImageRequest.Builder(context)
+        .listener(object : ImageRequest.Listener {
+            override fun onError(request: ImageRequest, result: ErrorResult) {
+                super.onError(request, result)
+                MsLogger.d("ImageError", result.throwable.message.toString())
+            }
+        })
+        .crossfade(true)
         .data(data = url)
         .dispatcher(dispatcher = Dispatchers.IO)
         .memoryCacheKey(key = url)
