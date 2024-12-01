@@ -124,22 +124,20 @@ fun HomeScreen(
             SmallFloatingActionButton(
                 modifier = Modifier,
                 onClick = {
-
+                    onSearchClick()
                 },
                 containerColor = Surface,
                 shape = RoundedCornerShape(100),
                 elevation = FloatingActionButtonDefaults.elevation(2.dp),
                 content = {
-                    IconButton(onClick = onSearchClick) {
-                        Icon(
-                            modifier = Modifier
-                                .padding(6.dp)
-                                .size(48.dp),
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = Color.White
-                        )
-                    }
+                    Icon(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(50.dp),
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color.White
+                    )
                 }
             )
         }
@@ -156,7 +154,7 @@ fun HomeScreen(
             } else {
                 when {
                     uiState.response == null -> NoDataState(uiState)
-                    else -> uiState.response?.let { WeatherContent(weatherResponse = it) }
+                    else -> uiState.response?.let { WeatherContent(weatherResponse = it, onSearchClick = onSearchClick) }
                 }
             }
 
