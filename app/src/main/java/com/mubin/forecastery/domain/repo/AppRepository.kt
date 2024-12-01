@@ -1,6 +1,5 @@
 package com.mubin.forecastery.domain.repo
 
-import com.mubin.forecastery.data.model.WeatherResponse
 import com.mubin.forecastery.domain.entities.WeatherEntity
 
 /**
@@ -17,7 +16,7 @@ interface AppRepository {
      * @param lat The latitude of the location.
      * @param lon The longitude of the location.
      * @param units The unit system for measurements (e.g., "metric", "imperial").
-     * @return A [WeatherResponse] object if the call is successful, or `null` if an error occurs.
+     * @return A [WeatherEntity] object if the call is successful, or `null` if an error occurs.
      *
      */
     suspend fun getWeatherDetails(lat: Double, lon: Double, units: String): WeatherEntity?
