@@ -1,5 +1,6 @@
 package com.mubin.forecastery.domain.repo
 
+import com.mubin.forecastery.data.model.DistrictModel
 import com.mubin.forecastery.domain.entities.WeatherEntity
 
 /**
@@ -20,4 +21,10 @@ interface AppRepository {
      *
      */
     suspend fun getWeatherDetails(lat: Double, lon: Double, units: String): WeatherEntity?
+
+
+    /**
+     * Fetches district list from local Json.
+     * */
+    suspend fun getDistrictList() : List<DistrictModel>?
 }

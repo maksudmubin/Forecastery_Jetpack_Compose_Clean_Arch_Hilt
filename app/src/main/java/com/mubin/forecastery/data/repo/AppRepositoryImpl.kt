@@ -1,8 +1,13 @@
 package com.mubin.forecastery.data.repo
 
+import android.content.Context
+import com.google.gson.Gson
 import com.mubin.forecastery.BuildConfig
 import com.mubin.forecastery.base.utils.MsLogger
+import com.mubin.forecastery.base.utils.readJsonFromAssets
 import com.mubin.forecastery.data.api.ApiService
+import com.mubin.forecastery.data.model.DistrictModel
+import com.mubin.forecastery.data.model.Districts
 import com.mubin.forecastery.domain.entities.WeatherEntity
 import com.mubin.forecastery.domain.repo.AppRepository
 import javax.inject.Inject
@@ -14,7 +19,10 @@ import javax.inject.Inject
  *
  * @property apiService The service used to make API calls.
  */
-class AppRepositoryImpl @Inject constructor(private val apiService: ApiService) : AppRepository {
+class AppRepositoryImpl @Inject constructor(
+    private val apiService: ApiService,
+    private val context: Context
+) : AppRepository {
 
     /**
      * Fetches weather details for a given location.
@@ -67,6 +75,52 @@ class AppRepositoryImpl @Inject constructor(private val apiService: ApiService) 
             // Log failure and the response object
             MsLogger.d("AppRepositoryImpl", "API call failed. Response: ${response?.message()}")
             null
+        }
+    }
+
+    /**
+     * Fetches the list of districts from a local JSON file and returns them as a list of `DistrictModel` objects.
+     * Additionally, prepends a special "My Current Location" entry at the beginning of the list.
+     *
+     * This method:
+     * - Reads the JSON file from the app's assets.
+     * - Parses the JSON data into a list of district models.
+     * - Logs the success or failure of each step for debugging purposes.
+     *
+     * @return A list of `DistrictModel` objects including a "My Current Location" entry at the top.
+     */
+    override suspend fun getDistrictList(): List<DistrictModel>? {
+        // Log the start of the method
+        MsLogger.d("DistrictRepositoryImpl", "Starting to fetch district list from local assets.")
+
+        return try {
+            // Read JSON file from assets
+            val json = readJsonFromAssets(context, "zilla_list.json")
+            MsLogger.d("DistrictRepositoryImpl", "Successfully read JSON from assets.")
+
+            // Parse JSON into a list of districts
+            val districtList = Gson().fromJson(json, Districts::class.java)
+            MsLogger.d("DistrictRepositoryImpl", "Successfully parsed district list from JSON.")
+
+            // Create "My Current Location" entry
+            val myCurrentLocation = DistrictModel(
+                id = -1,
+                name = "My Current Location",
+                state = "current",
+                country = "current",
+                DistrictModel.Coord(lon = 0.0, lat = 0.0)
+            )
+            MsLogger.d("DistrictRepositoryImpl", "Created 'My Current Location' entry.")
+
+            // Return the list with "My Current Location" prepended
+            val finalList = listOf(myCurrentLocation) + districtList
+            MsLogger.d("DistrictRepositoryImpl", "Returning the final district list with ${finalList.size} items.")
+
+            finalList
+        } catch (e: Exception) {
+            // Log the error if something goes wrong
+            MsLogger.d("DistrictRepositoryImpl", "Error occurred while fetching district list: ${e.localizedMessage}")
+            null // return null
         }
     }
 }
