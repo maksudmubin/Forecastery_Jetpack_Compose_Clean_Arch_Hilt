@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -376,11 +377,11 @@ fun WeatherIconWithCurvedText(
 @Composable
 fun WeatherDetailGrid(weatherResponse: WeatherEntity) {
     val weatherItems = listOf(
-        WeatherItem("Humidity", "${weatherResponse.humidity ?: "--"}%", Icons.Default.WaterDrop),
-        WeatherItem("Pressure", "${weatherResponse.pressure ?: "--"} hPa", Icons.Default.Speed),
-        WeatherItem("Wind Speed", "${weatherResponse.windSpeed ?: "--"} m/s", Icons.Default.Air),
-        WeatherItem("Cloudiness", "${weatherResponse.cloudiness ?: "--"}%", Icons.Default.Cloud),
-        WeatherItem("Visibility", "${weatherResponse.visibility ?: "--"} m", Icons.Default.Visibility),
+        WeatherItem("Humidity", "${weatherResponse.humidity}%", Icons.Default.WaterDrop),
+        WeatherItem("Pressure", "${weatherResponse.pressure} hPa", Icons.Default.Speed),
+        WeatherItem("Wind Speed", "${weatherResponse.windSpeed} m/s", Icons.Default.Air),
+        WeatherItem("Cloudiness", "${weatherResponse.cloudiness}%", Icons.Default.Cloud),
+        WeatherItem("Visibility", "${weatherResponse.visibility} m", Icons.Default.Visibility),
         WeatherItem("Time Zone", formatTimezoneOffset(weatherResponse.timeZone), Icons.Default.Public),
         WeatherItem("Sunrise", formatUnixTime(weatherResponse.sunrise), Icons.Default.WbSunny),
         WeatherItem("Sunset", formatUnixTime(weatherResponse.sunset), Icons.Default.Stars)
@@ -466,7 +467,7 @@ fun WeatherInfoCard(
  * Displays a loading shimmer effect while weather data is being fetched.
  */
 @Composable
-fun ShimmerLoading() {
+fun HomeScreenShimmerLoading() {
     // Fetch screen width from configuration
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
@@ -563,6 +564,85 @@ fun ShimmerLoading() {
                         .shimmerEffect(translateAnim.value, shimmerColorShades)
                 )
             }
+        }
+    }
+}
+
+
+/**
+ * Displays a shimmer loading effect for the search screen.
+ *
+ * This composable provides a visual placeholder while the district list is being loaded.
+ * It uses a shimmer animation to mimic a loading state for UI elements such as rows and dividers.
+ *
+ * @param paddingValues Padding values passed from the parent scaffold to avoid overlapping with the system UI.
+ */
+@Composable
+fun SearchScreenShimmerLoading(paddingValues: PaddingValues) {
+    // Fetch screen width from the current device configuration
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    // Define the color shades used for the shimmer animation
+    val shimmerColorShades = listOf(
+        Color.Gray.copy(alpha = 0.6f), // Semi-opaque gray color
+        Color.Gray.copy(alpha = 0.2f), // Transparent gray color
+        Color.Gray.copy(alpha = 0.6f)  // Semi-opaque gray color
+    )
+
+    // Create an infinite transition for the shimmer animation
+    val transition = rememberInfiniteTransition(label = "Shimmer Transition")
+
+    // Animate the shimmer translation across the screen
+    val translateAnim = transition.animateFloat(
+        initialValue = -1000f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing) // Smooth linear animation
+        ),
+        label = "Shimmer Animation"
+    )
+
+    // Main layout container for the shimmer effect
+    Column(
+        modifier = Modifier
+            .fillMaxSize() // Fills the entire available screen space
+            .padding(paddingValues) // Applies padding to match the scaffold's layout
+            .padding(top = 16.dp), // Additional top padding
+        verticalArrangement = Arrangement.spacedBy(16.dp) // Spaces items vertically
+    ) {
+        // Repeat the shimmer row multiple times to simulate a list
+        repeat(20) {
+            // Row layout for each shimmer item
+            Row(
+                modifier = Modifier
+                    .height(24.dp), // Fixed row height
+                verticalAlignment = Alignment.CenterVertically // Aligns items vertically in the center
+            ) {
+                // Icon placeholder representing a location marker
+                Icon(
+                    modifier = Modifier
+                        .padding(start = 16.dp), // Padding from the start of the row
+                    imageVector = Icons.Default.LocationOn, // Default material location icon
+                    contentDescription = "Location Icon", // Accessibility description for the icon
+                    tint = MaterialTheme.colorScheme.primary // Tint color matching the theme
+                )
+                Spacer(modifier = Modifier.width(8.dp)) // Space between the icon and shimmer box
+                // Shimmer box representing text placeholder
+                Box(
+                    modifier = Modifier
+                        .width(screenWidth.times(0.4f)) // 40% of the screen width
+                        .height(15.dp) // Fixed height for the placeholder
+                        .shimmerEffect(translateAnim.value, shimmerColorShades) // Apply shimmer effect
+                )
+            }
+            // Separator shimmer box between rows
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth() // Full width of the screen
+                    .height(1.dp) // Fixed height for the divider
+                    .shimmerEffect(translateAnim.value, shimmerColorShades) // Apply shimmer effect
+            )
         }
     }
 }
@@ -738,6 +818,7 @@ fun DistrictItem(
         // Text to display the district name
         Text(
             text = district?.name ?: "--", // Displays the district name or "--" if null
+            fontSize = 16.sp,
             style = MaterialTheme.typography.bodyMedium, // Applies the medium body typography style
             color = Color.White // Sets the text color to white
         )
