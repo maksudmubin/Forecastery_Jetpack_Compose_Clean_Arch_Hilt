@@ -32,22 +32,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.google.gson.Gson
 import com.mubin.forecastery.base.theme.Background
 import com.mubin.forecastery.base.theme.Surface
 import com.mubin.forecastery.base.utils.MsLogger
 import com.mubin.forecastery.base.utils.executeBodyOrReturnNullSuspended
 import com.mubin.forecastery.base.utils.executionlocker.withExecutionLocker
-import com.mubin.forecastery.base.utils.readJsonFromAssets
 import com.mubin.forecastery.data.model.DistrictModel
-import com.mubin.forecastery.data.model.Districts
 import com.mubin.forecastery.data.model.WeatherRequest
 import com.mubin.forecastery.ui.composable.CircularProgressBar
 import com.mubin.forecastery.ui.composable.DistrictItem
@@ -96,12 +92,12 @@ data class WeatherItem(
  * It defines two main destinations: Home and Search.
  *
  * @param navController The NavHostController used for navigating between screens.
- * @param uiState The current state of the UI, including weather data and permission status.
+ * @param vm The viewModel contains current state of the UI, including methods to contact with domain layer.
  */
 @Composable
 fun WeatherAppNavHost(
     navController: NavHostController, // Navigation controller for handling screen transitions
-    uiState: HomeUiState // The state of the home screen, which holds weather data and other UI states
+    vm: HomeViewModel // The viewModel, which holds weather data and other UI states
 ) {
 
     // Remember coroutine scope to launch background tasks
@@ -114,12 +110,12 @@ fun WeatherAppNavHost(
         composable(ScreenItem.Home.route) {
             // HomeScreen composable, passing uiState and functions for search and refresh actions
             HomeScreen(
-                uiState = uiState, // Pass the UI state to the home screen
+                uiState = vm.uiState, // Pass the UI state to the home screen
                 onSearchClick = {
                     navController.navigate(ScreenItem.Search.route) // Navigate to Search screen when search is clicked
                 },
                 onRefreshScreen = {
-                    uiState.loadData = true // Refresh the weather data when the refresh action is triggered
+                    vm.uiState.loadData = true // Refresh the weather data when the refresh action is triggered
                 }
             )
         }
@@ -128,7 +124,7 @@ fun WeatherAppNavHost(
         composable(ScreenItem.Search.route) {
             // SearchScreen composable, passing uiState and a function for handling district selection
             SearchScreen(
-                uiState = uiState, // Pass the UI state to the search screen
+                vm = vm, // Pass the vm to the search screen
                 onDistrictSelected = { selectedDistrict ->
                     withExecutionLocker(1000L) {
                         // Locks execution for 1000 milliseconds to prevent rapid consecutive actions
@@ -138,14 +134,14 @@ fun WeatherAppNavHost(
                             executeBodyOrReturnNullSuspended {
                                 // Executes weather request logic only if selectedDistrict is valid
                                 if (selectedDistrict?.id == -1) {
-                                    uiState.permissionGranted = false // Deny permission if invalid district is selected
+                                    vm.uiState.permissionGranted = false // Deny permission if invalid district is selected
                                 } else {
                                     // Update the weather request with the selected district's coordinates
-                                    uiState.weatherRequest = WeatherRequest(
+                                    vm.uiState.weatherRequest = WeatherRequest(
                                         lat = selectedDistrict?.coord?.lat ?: 0.0, // Latitude of the selected district
                                         lon = selectedDistrict?.coord?.lon ?: 0.0  // Longitude of the selected district
                                     )
-                                    uiState.loadData = true // Trigger the data loading for the weather
+                                    vm.uiState.loadData = true // Trigger the data loading for the weather
                                 }
                             }
                         }
@@ -241,13 +237,13 @@ fun HomeScreen(
  * Search screen composable where users can search and select a district from a list of districts.
  * Displays a search bar, filters and sorts the district list, and handles loading and selection states.
  *
- * @param uiState The state containing district list, loading status, and other necessary data.
+ * @param vm The vm containing uiState, and other necessary methods.
  * @param onDistrictSelected A lambda that is triggered when a district is selected.
  * @param modifier Modifier to customize the layout and appearance of the composable.
  */
 @Composable
 fun SearchScreen(
-    uiState: HomeUiState, // UI state holding the district list, loading status, and other data
+    vm: HomeViewModel, // viewModel
     onDistrictSelected: (DistrictModel?) -> Unit, // Lambda to handle district selection
     modifier: Modifier = Modifier // Modifier to customize layout
 ) {
@@ -255,35 +251,24 @@ fun SearchScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val context = LocalContext.current // Get the context for accessing assets and other system-level resources
     val scope = rememberCoroutineScope() // Coroutine scope for launching background tasks
 
     // LaunchedEffect to load the district list if it's empty
     LaunchedEffect(Unit) {
-        if (uiState.districtList.isEmpty()) {
-            uiState.isLoading = true // Set loading state to true while fetching data
+        if (vm.uiState.districtList.isEmpty()) {
             scope.launch {
                 try {
-                    // Read JSON file containing district list from assets
-                    val stringJson = readJsonFromAssets(context = context, "zilla_list.json")
-                    val districtList = Gson().fromJson(stringJson, Districts::class.java)
-                    // Add "My Current Location" at the start of the list
-                    uiState.districtList.add(DistrictModel(
-                        id = -1,
-                        name = "My Current Location",
-                        state = "current",
-                        country = "current",
-                        DistrictModel.Coord(
-                            lon = 0.0,
-                            lat = 0.0
-                        )
-                    ))
-                    uiState.districtList.addAll(districtList) // Add all districts to the state list
+                    delay(400)
+                    vm.uiState.isLoading = true // Set loading state to true while fetching data
+                    val districtList = vm.getDistrictList()
+                    if (districtList != null) {
+                        vm.uiState.districtList.addAll(districtList)
+                    } // Add all districts to the state list
                 } catch (e: Exception) {
                     // Handle any errors during the data loading
                     MsLogger.e("SearchScreen", "Error loading district list: ${e.localizedMessage}")
                 } finally {
-                    uiState.isLoading = false // Set loading to false after data is loaded
+                    vm.uiState.isLoading = false // Set loading to false after data is loaded
                 }
             }
         }
@@ -293,8 +278,8 @@ fun SearchScreen(
     var searchText by remember { mutableStateOf("") }
 
     // Filter the districts based on the search text
-    val filteredDistricts = if (searchText.isBlank()) uiState.districtList else {
-        uiState.districtList.filter { it.name.contains(searchText, ignoreCase = true) }
+    val filteredDistricts = if (searchText.isBlank()) vm.uiState.districtList else {
+        vm.uiState.districtList.filter { it.name.contains(searchText, ignoreCase = true) }
     }
 
     // Sort the districts, placing "My Current Location" at the top
@@ -327,7 +312,7 @@ fun SearchScreen(
                 .fillMaxSize()
         ) {
             // Show a loading indicator while the data is being fetched
-            if (uiState.isLoading) {
+            if (vm.uiState.isLoading) {
                 CircularProgressBar(
                     modifier = Modifier
                         .size(48.dp)
