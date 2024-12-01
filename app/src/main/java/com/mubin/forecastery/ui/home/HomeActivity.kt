@@ -59,9 +59,7 @@ class HomeActivity : ComponentActivity() {
 
                 val context = LocalContext.current
                 val navController = rememberNavController() // Set up the navigation controller
-                val shouldShowDialog = remember { mutableStateOf(false) } // State to control error dialog visibility
                 val shouldShowPermissionDialog = remember { mutableStateOf(false) } // State to control permission dialog visibility
-                val scope = rememberCoroutineScope()
 
                 // Permission launcher to handle permission request for location
                 val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -111,38 +109,6 @@ class HomeActivity : ComponentActivity() {
                         vm.uiState.askPermission = true
                     }
                 }
-
-                // Trigger data fetching only after the location is fetched
-                LaunchedEffect(vm.uiState.loadData) {
-                    if (vm.uiState.loadData) {
-                        scope.launch {
-                            executeBodyOrReturnNullSuspended {
-                                vm.uiState.isHomeScreenLoading = true
-                                vm.uiState.weatherRequest?.let { request ->
-                                    // Fetch weather details based on the location request
-                                    val response = vm.getWeatherDetails(request)
-                                    if (response == null) {
-                                        MsLogger.d("HomeActivity", "Error fetching weather data")
-                                        shouldShowDialog.value = true // Show error dialog if weather data fetching fails
-                                    } else {
-                                        MsLogger.d("HomeActivity", "$response") // Log successful weather data retrieval
-                                        vm.uiState.response = response
-                                        vm.uiState.loadData = false
-                                    }
-                                }
-                                vm.uiState.isHomeScreenLoading = false
-                            }
-                        }
-                    }
-                }
-
-                // Custom alert dialog for error handling
-                CustomAlertDialog(
-                    shouldShowDialog = shouldShowDialog,
-                    title = "Error",
-                    text = "Ops! Something bad happened.",
-                    positiveButtonTitle = "Okay"
-                )
 
                 // Custom alert dialog for requesting permission
                 CustomAlertDialog(
