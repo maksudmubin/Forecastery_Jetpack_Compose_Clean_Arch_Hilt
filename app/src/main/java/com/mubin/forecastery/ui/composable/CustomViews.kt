@@ -34,6 +34,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
@@ -181,13 +182,13 @@ fun CustomAlertDialog(
             title = {
                 Text(
                     text = title, // Title of the dialog
-                    color = MaterialTheme.colorScheme.onPrimary // Title color based on theme
+                    color = Color.White // Title color based on theme
                 )
             },
             text = {
                 Text(
                     text = text, // Text content of the dialog
-                    color = MaterialTheme.colorScheme.onPrimary // Text color based on theme
+                    color = Color.White // Text color based on theme
                 )
             },
             confirmButton = {
@@ -213,7 +214,10 @@ fun CustomAlertDialog(
 }
 
 @Composable
-fun WeatherContent(weatherResponse: WeatherResponse) {
+fun WeatherContent(
+    weatherResponse: WeatherResponse,
+    onSearchClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(16.dp),
@@ -247,13 +251,31 @@ fun WeatherContent(weatherResponse: WeatherResponse) {
                 modifier = Modifier
                     .padding(start = 16.dp)
             ) {
-                Text(
-                    text = weatherResponse.name.orEmpty(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier
+                        .clickable {
+                            onSearchClick()
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = weatherResponse.name.orEmpty(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(
+                        modifier = Modifier
+                            .width(2.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+
+                }
                 Text(
                     text = "${weatherResponse.main?.temp?.toInt() ?: "--"}°C",
                     style = MaterialTheme.typography.displayLarge,
