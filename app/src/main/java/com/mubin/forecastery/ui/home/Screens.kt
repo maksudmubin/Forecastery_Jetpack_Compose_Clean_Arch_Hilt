@@ -44,6 +44,7 @@ import com.mubin.forecastery.base.utils.executeBodyOrReturnNullSuspended
 import com.mubin.forecastery.base.utils.executionlocker.withExecutionLocker
 import com.mubin.forecastery.data.model.DistrictModel
 import com.mubin.forecastery.data.model.WeatherRequest
+import com.mubin.forecastery.ui.composable.CustomAlertDialog
 import com.mubin.forecastery.ui.composable.DistrictItem
 import com.mubin.forecastery.ui.composable.NoDataState
 import com.mubin.forecastery.ui.composable.SearchBar
@@ -109,7 +110,7 @@ fun WeatherAppNavHost(
         composable(ScreenItem.Home.route) {
             // HomeScreen composable, passing uiState and functions for search and refresh actions
             HomeScreen(
-                uiState = vm.uiState, // Pass the UI state to the home screen
+                vm = vm, // Pass the UI state to the home screen
                 onSearchClick = {
                     navController.navigate(ScreenItem.Search.route) // Navigate to Search screen when search is clicked
                 },
@@ -163,13 +164,48 @@ fun WeatherAppNavHost(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
-    uiState: HomeUiState, // The state that holds the weather data and UI state (loading, error, etc.)
+    vm: HomeViewModel, // The state that holds the weather data and UI state (loading, error, etc.)
     onRefreshScreen: () -> Unit, // A lambda to handle the refresh logic
     onSearchClick: () -> Unit, // A lambda for search button click action
     modifier: Modifier = Modifier // Modifier to customize the composable's layout and appearance
 ) {
     // Remember the state for the pull-to-refresh feature
-    val pullRefreshState = rememberPullRefreshState(refreshing = uiState.isHomeScreenLoading, onRefresh = onRefreshScreen)
+    val pullRefreshState = rememberPullRefreshState(refreshing = vm.uiState.isHomeScreenLoading, onRefresh = onRefreshScreen)
+
+    val shouldShowDialog = remember { mutableStateOf(false) } // State to control error dialog visibility
+    val scope = rememberCoroutineScope()
+
+    // Trigger data fetching only after the location is fetched
+    LaunchedEffect(vm.uiState.loadData) {
+        if (vm.uiState.loadData) {
+            scope.launch {
+                executeBodyOrReturnNullSuspended {
+                    vm.uiState.isHomeScreenLoading = true
+                    vm.uiState.weatherRequest?.let { request ->
+                        // Fetch weather details based on the location request
+                        val response = vm.getWeatherDetails(request)
+                        if (response == null) {
+                            MsLogger.d("HomeActivity", "Error fetching weather data")
+                            shouldShowDialog.value = true // Show error dialog if weather data fetching fails
+                        } else {
+                            MsLogger.d("HomeActivity", "$response") // Log successful weather data retrieval
+                            vm.uiState.response = response
+                            vm.uiState.loadData = false
+                        }
+                    }
+                    vm.uiState.isHomeScreenLoading = false
+                }
+            }
+        }
+    }
+
+    // Custom alert dialog for error handling
+    CustomAlertDialog(
+        shouldShowDialog = shouldShowDialog,
+        title = "Error",
+        text = "Ops! Something bad happened.",
+        positiveButtonTitle = "Okay"
+    )
 
     // Scaffold provides a layout structure for the screen, with app bar, FAB, and body content
     Scaffold(
@@ -205,13 +241,13 @@ fun HomeScreen(
                 .background(Background) // Background color or image for the screen
         ) {
             // Display the loading shimmer effect while data is being fetched
-            if (uiState.isHomeScreenLoading) {
+            if (vm.uiState.isHomeScreenLoading) {
                 HomeScreenShimmerLoading() // Shimmer effect for loading state
             } else {
                 // Display different UI based on the presence of response data
                 when {
-                    uiState.response == null -> NoDataState(uiState) // No data available, show "No Data" state
-                    else -> uiState.response?.let {
+                    vm.uiState.response == null -> NoDataState(vm.uiState) // No data available, show "No Data" state
+                    else -> vm.uiState.response?.let {
                         WeatherContent( // Weather data available, show the actual content
                             weatherResponse = it,
                             onSearchClick = onSearchClick
