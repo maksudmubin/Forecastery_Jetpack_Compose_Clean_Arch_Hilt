@@ -156,7 +156,7 @@ fun WeatherAppNavHost(
  * Home screen composable that displays weather data, a search button, and a pull-to-refresh feature.
  * It handles different UI states, including loading and displaying weather content or showing a "No Data" state.
  *
- * @param uiState The current state of the UI, including weather data and loading status.
+ * @param vm ViewModel instance used to manage the UI state and fetch data from domain layer.
  * @param onRefreshScreen The function that is triggered when the user pulls to refresh the screen.
  * @param onSearchClick The function that is triggered when the user clicks the search button.
  * @param modifier The modifier to be applied to the HomeScreen composable.
@@ -164,10 +164,10 @@ fun WeatherAppNavHost(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
-    vm: HomeViewModel, // The state that holds the weather data and UI state (loading, error, etc.)
+    vm: HomeViewModel, // ViewModel instance used to manage the UI state and fetch data from domain layer.
     onRefreshScreen: () -> Unit, // A lambda to handle the refresh logic
     onSearchClick: () -> Unit, // A lambda for search button click action
-    modifier: Modifier = Modifier // Modifier to customize the composable's layout and appearance
+    modifier: Modifier = Modifier // Modifier to customize the composable layout and appearance
 ) {
     // Remember the state for the pull-to-refresh feature
     val pullRefreshState = rememberPullRefreshState(refreshing = vm.uiState.isHomeScreenLoading, onRefresh = onRefreshScreen)
@@ -272,13 +272,13 @@ fun HomeScreen(
  * Search screen composable where users can search and select a district from a list of districts.
  * Displays a search bar, filters and sorts the district list, and handles loading and selection states.
  *
- * @param vm The vm containing uiState, and other necessary methods.
+ * @param vm ViewModel instance used to manage the UI state and fetch data from domain layer.
  * @param onDistrictSelected A lambda that is triggered when a district is selected.
  * @param modifier Modifier to customize the layout and appearance of the composable.
  */
 @Composable
 fun SearchScreen(
-    vm: HomeViewModel, // viewModel
+    vm: HomeViewModel, // ViewModel instance used to manage the UI state and fetch data from domain layer.
     onDistrictSelected: (DistrictModel?) -> Unit, // Lambda to handle district selection
     modifier: Modifier = Modifier // Modifier to customize layout
 ) {

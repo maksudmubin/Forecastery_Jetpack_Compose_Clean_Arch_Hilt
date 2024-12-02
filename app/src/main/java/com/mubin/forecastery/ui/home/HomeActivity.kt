@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
@@ -27,12 +26,10 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.LocationServices
 import com.mubin.forecastery.base.theme.WeatherTheme
 import com.mubin.forecastery.base.utils.MsLogger
-import com.mubin.forecastery.base.utils.executeBodyOrReturnNullSuspended
 import com.mubin.forecastery.data.model.WeatherRequest
 import com.mubin.forecastery.ui.composable.CustomAlertDialog
 import com.mubin.forecastery.ui.composable.ShowHideStatusBarScreen
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 /**
  * The main activity of the Weather app. It handles location permissions, fetches weather data,
@@ -41,7 +38,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class HomeActivity : ComponentActivity() {
 
-    // ViewModel instance used to manage the UI state
+    // ViewModel instance used to manage the UI state and fetch data from domain layer
     private val vm by viewModels<HomeViewModel>()
 
     /**
