@@ -19,7 +19,7 @@ abstract class UseCase<Type, in Params> where Type : Any {
      * @param params The parameters required to execute the use case.
      * @return The result of the use case, or `null` if an exception occurs.
      */
-    abstract suspend fun run(params: Params): Type?
+    abstract suspend fun run(params: Params): Type
 
     /**
      * Wraps the `run` method to execute it on the IO dispatcher for background execution.
@@ -27,7 +27,7 @@ abstract class UseCase<Type, in Params> where Type : Any {
      * @param params The parameters required to execute the use case.
      * @return The result of the use case, or `null` if an exception occurs.
      */
-    private suspend fun getResponse(params: Params): Type? = withContext(Dispatchers.IO) {
+    private suspend fun getResponse(params: Params): Type = withContext(Dispatchers.IO) {
         MsLogger.d("UseCase", "Executing use case with params: $params")
         run(params).also { result ->
             MsLogger.d("UseCase", "Execution result: $result")
@@ -40,7 +40,7 @@ abstract class UseCase<Type, in Params> where Type : Any {
      * @param params The parameters required to execute the use case.
      * @return The result of the use case, or `null` if an exception occurs.
      */
-    suspend operator fun invoke(params: Params): Type? = getResponse(params)
+    suspend operator fun invoke(params: Params): Type = getResponse(params)
 
     /**
      * A placeholder class to represent use cases that do not require any parameters.
