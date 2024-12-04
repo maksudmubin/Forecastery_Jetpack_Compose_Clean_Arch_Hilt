@@ -18,7 +18,7 @@ import javax.inject.Inject
  */
 class GetWeatherDetailsUseCase @Inject constructor(
     private val appRepository: AppRepository
-) : UseCase<WeatherEntity, WeatherRequest>() {
+) : UseCase<Result<WeatherEntity>, WeatherRequest>() {
 
     /**
      * Executes the use case with the given parameters to fetch weather details.
@@ -28,7 +28,7 @@ class GetWeatherDetailsUseCase @Inject constructor(
      *
      * Handles any exceptions during the execution and logs them.
      */
-    override suspend fun run(params: WeatherRequest): WeatherEntity? {
+    override suspend fun run(params: WeatherRequest): Result<WeatherEntity> {
         // Log the initiation of the use case
         MsLogger.d("GetWeatherDetailsUseCase", "Executing with params: $params")
 
@@ -40,7 +40,7 @@ class GetWeatherDetailsUseCase @Inject constructor(
         } catch (e: Exception) {
             // Log the exception if an error occurs
             MsLogger.d("GetWeatherDetailsUseCase", "Error during execution: ${e.message}")
-            null
+            Result.failure(e)
         }
     }
 }
