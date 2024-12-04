@@ -38,7 +38,7 @@ class AppRepositoryImpl @Inject constructor(
         lat: Double,
         lon: Double,
         units: String
-    ): WeatherEntity? {
+    ): Result<WeatherEntity> {
         // Log the initiation of the API call
         MsLogger.d("AppRepositoryImpl", "Fetching weather details: lat=$lat, lon=$lon, units=$units")
 
@@ -55,7 +55,7 @@ class AppRepositoryImpl @Inject constructor(
         return if (response?.isSuccessful == true) {
             // Log success and parse the response body
             MsLogger.d("AppRepositoryImpl", "API call successful. Parsing response.")
-            WeatherEntity(
+            val weather = WeatherEntity(
                 country = response.body()?.sys?.country ?: "Unknown",
                 locationName = response.body()?.name ?: "Unknown",
                 temperature = response.body()?.main?.temp ?: 0.0,
@@ -71,10 +71,11 @@ class AppRepositoryImpl @Inject constructor(
                 sunrise = response.body()?.sys?.sunrise ?: 0,
                 sunset = response.body()?.sys?.sunset ?: 0
             )
+            Result.success(weather)
         } else {
             // Log failure and the response object
             MsLogger.d("AppRepositoryImpl", "API call failed. Response: ${response?.message()}")
-            null
+            Result.failure(RuntimeException(response?.message()))
         }
     }
 
@@ -89,7 +90,7 @@ class AppRepositoryImpl @Inject constructor(
      *
      * @return A list of `DistrictModel` objects including a "My Current Location" entry at the top.
      */
-    override suspend fun getDistrictList(): List<DistrictModel>? {
+    override suspend fun getDistrictList(): Result<List<DistrictModel>> {
         // Log the start of the method
         MsLogger.d("DistrictRepositoryImpl", "Starting to fetch district list from local assets.")
 
@@ -116,11 +117,11 @@ class AppRepositoryImpl @Inject constructor(
             val finalList = listOf(myCurrentLocation) + districtList
             MsLogger.d("DistrictRepositoryImpl", "Returning the final district list with ${finalList.size} items.")
 
-            finalList
+            Result.success(finalList)
         } catch (e: Exception) {
             // Log the error if something goes wrong
             MsLogger.d("DistrictRepositoryImpl", "Error occurred while fetching district list: ${e.localizedMessage}")
-            null // return null
+            Result.failure(e) // return null
         }
     }
 }
