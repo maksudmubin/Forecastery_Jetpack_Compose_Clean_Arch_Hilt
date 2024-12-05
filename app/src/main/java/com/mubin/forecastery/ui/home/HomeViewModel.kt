@@ -33,33 +33,23 @@ class HomeViewModel @Inject constructor(
     private val districtListUseCase: GetDistrictListUseCase
 ) : ViewModel() {
 
-
-
-    private val _permissionState = mutableStateOf<PermissionState>(PermissionState.Denied)
+    // Holds the current permission state (Requesting, Granted, Denied, Permanently Denied)
+    private val _permissionState = mutableStateOf<PermissionState>(PermissionState.Requesting)
     val permissionState = _permissionState
 
-    private val _askPermission = mutableStateOf(false)
-    val askPermission: State<Boolean> = _askPermission
-
-    private val _permissionGranted = mutableStateOf(false)
-    val permissionGranted: State<Boolean> = _permissionGranted
-
+    // Holds the loading state for the weather data
     private val _loadData = mutableStateOf(false)
     val loadData: State<Boolean> = _loadData
 
+    // Holds the current state of the home screen (e.g., loading, success, or error)
     private val _homeState = mutableStateOf<WeatherState>(WeatherState.Loading)
     val homeState: State<WeatherState> = _homeState
 
+    // Holds the state of the search feature (loading, success, or error)
     private val _searchState = mutableStateOf<SearchState>(SearchState.Loading)
     val searchState: State<SearchState> = _searchState
 
-    private var _currentLocation: WeatherRequest? by mutableStateOf(null)
-    var currentLocation: WeatherRequest?
-        get() = _currentLocation
-        set(value) {
-            _currentLocation = value
-        }
-
+    // WeatherRequest object that contains the request parameters like latitude, longitude, etc.
     private var _weatherRequest: WeatherRequest? by mutableStateOf(null)
     var weatherRequest: WeatherRequest?
         get() = _weatherRequest
@@ -67,6 +57,7 @@ class HomeViewModel @Inject constructor(
             _weatherRequest = value
         }
 
+    // Cached list of districts
     var cachedDistrictList = mutableStateListOf<DistrictModel>()
 
     /**
@@ -85,11 +76,11 @@ class HomeViewModel @Inject constructor(
             // Execute the use case and fetch weather details
             val response = weatherDetailsUseCase(request)
             MsLogger.d("HomeViewModel", "Weather data fetched successfully: $response")
-            response
+            return@withContext response // Return the response if successful
         } catch (e: Exception) {
-            // Log any exceptions that occur
+            // Log any exceptions that occur during the fetch operation
             MsLogger.d("HomeViewModel", "Error fetching weather data: ${e.message}")
-            Result.failure(e)
+            return@withContext Result.failure(e) // Return failure in case of an error
         }
     }
 
@@ -112,58 +103,88 @@ class HomeViewModel @Inject constructor(
                 MsLogger.d("HomeViewModel", "Successfully fetched ${it.getOrNull()?.size} districts.")
             }
         } catch (e: Exception) {
-            // Log the exception if an error occurs
+            // Log the exception if an error occurs during the fetch operation
             MsLogger.e("HomeViewModel", "Error fetching district list: ${e.message}")
-            // Return null to indicate failure
-            Result.failure(e)
+            // Return failure to indicate the error
+            return@withContext Result.failure(e)
         }
     }
 
-    fun requestPermission() {
-        permissionState.value = PermissionState.Requesting
+    /**
+     * Updates the permission state with the new state.
+     *
+     * @param newState The new [PermissionState] to set.
+     */
+    fun updatePermissionState(newState: PermissionState) {
+        _permissionState.value = newState
+        MsLogger.d("HomeViewModel", "Permission state updated to: $newState")
     }
 
-    fun setAskPermissionState(askPermission: Boolean) {
-        _askPermission.value = askPermission
-    }
-
-    fun setPermissionGrantedState(permissionGranted: Boolean) {
-        _permissionGranted.value = permissionGranted
-    }
-
+    /**
+     * Sets the loading state for the data.
+     *
+     * @param loadData The new loading state to set.
+     */
     fun setLoadDataState(loadData: Boolean) {
         _loadData.value = loadData
+        MsLogger.d("HomeViewModel", "Load data state updated to: $loadData")
     }
 
-    // Set loading state
+    /**
+     * Sets the home state to loading.
+     */
     fun setHomeLoadingState() {
         _homeState.value = WeatherState.Loading
+        MsLogger.d("HomeViewModel", "Home state set to Loading.")
     }
 
-    // Set success state with weather data
+    /**
+     * Sets the home state to success with the provided weather data.
+     *
+     * @param data The weather data to set in the success state.
+     */
     fun setHomeSuccessState(data: WeatherEntity) {
         _homeState.value = WeatherState.Success(data)
+        MsLogger.d("HomeViewModel", "Home state set to Success with data: $data")
     }
 
-    // Set error state with message
+    /**
+     * Sets the home state to error with an optional error message.
+     *
+     * @param message The error message to set in the error state.
+     */
     fun setHomeErrorState(message: String?) {
         _homeState.value = WeatherState.Error(message)
+        MsLogger.d("HomeViewModel", "Home state set to Error with message: $message")
     }
 
-    // Set loading state
+    /**
+     * Sets the search state to loading.
+     */
     fun setSearchLoadingState() {
         _searchState.value = SearchState.Loading
+        MsLogger.d("HomeViewModel", "Search state set to Loading.")
     }
 
-    // Set success state with weather data
+    /**
+     * Sets the search state to success with the provided district data.
+     *
+     * @param data The list of districts to set in the success state.
+     */
     fun setSearchSuccessState(data: List<DistrictModel>) {
         _searchState.value = SearchState.Success(data)
-        cachedDistrictList.addAll(data)
+        cachedDistrictList.addAll(data) // Cache the district list
+        MsLogger.d("HomeViewModel", "Search state set to Success with data: ${data.size} districts.")
     }
 
-    // Set error state with message
+    /**
+     * Sets the search state to error with an optional error message.
+     *
+     * @param message The error message to set in the error state.
+     */
     fun setSearchErrorState(message: String?) {
         _searchState.value = SearchState.Error(message)
+        MsLogger.d("HomeViewModel", "Search state set to Error with message: $message")
     }
 
 }
