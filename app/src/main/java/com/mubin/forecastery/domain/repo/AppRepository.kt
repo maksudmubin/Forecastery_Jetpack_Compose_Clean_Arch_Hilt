@@ -20,11 +20,11 @@ interface AppRepository {
      * @return A [WeatherEntity] object if the call is successful, or `null` if an error occurs.
      *
      */
-    suspend fun getWeatherDetails(lat: Double, lon: Double, units: String): WeatherEntity?
+    suspend fun getWeatherDetails(lat: Double, lon: Double, units: String): Result<WeatherEntity>
 
 
     /**
      * Fetches district list from local Json.
      * */
-    suspend fun getDistrictList() : List<DistrictModel>?
+    suspend fun getDistrictList() : Result<List<DistrictModel>>
 }

@@ -17,11 +17,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.LocationServices
 import com.mubin.forecastery.base.theme.WeatherTheme
@@ -52,62 +54,53 @@ class HomeActivity : ComponentActivity() {
         // Setting the content view for the activity
         setContent {
             ShowHideStatusBarScreen(true) // Show the status bar on this screen
+
+            // Apply the weather theme to the entire screen content
             WeatherTheme {
 
+                // Local context and navigation controller setup
                 val context = LocalContext.current
                 val navController = rememberNavController() // Set up the navigation controller
-                val shouldShowPermissionDialog = remember { mutableStateOf(false) } // State to control permission dialog visibility
 
-                // Permission launcher to handle permission request for location
-                val locationPermissionLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestPermission()
-                ) { isGranted ->
-                    // Handle permission result
-                    if (isGranted) {
-                        vm.uiState.permissionGranted = true
-                    } else {
-                        // Check if permission was permanently denied
-                        val showRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-                            context as Activity, Manifest.permission.ACCESS_FINE_LOCATION
-                        )
-                        if (!showRationale) {
-                            // Permission permanently denied
-                            vm.uiState.permissionGranted = false
-                            vm.uiState.askPermission = false // Prevent repeated requests
-                            shouldShowPermissionDialog.value = true // Show dialog for permanently denied
+                // State to control visibility of the permission dialog
+                val shouldShowPermissionDialog = remember { mutableStateOf(false) }
+
+                // State to track the current permission status
+                val state by vm.permissionState
+
+                // Check if the permission state is "Requesting"
+                if (state is PermissionState.Requesting) {
+                    // Handle the permission request logic
+                    RequestLocationPermission(
+                        onGranted = {
+                            // If permission is granted, update the permission state
+                            vm.updatePermissionState(PermissionState.Granted)
+                            // Fetch location and set weather request data
+                            fetchLocation(
+                                context = context,
+                                onLocationFetched = { lat, lon ->
+                                    vm.weatherRequest = WeatherRequest(lat = lat, lon = lon)
+                                    vm.setLoadDataState(true) // Set the data loading state
+                                }
+                            )
+                        },
+                        onDenied = {
+                            // If permission is denied, update state and show an error message
+                            vm.updatePermissionState(PermissionState.Denied)
+                            vm.setHomeErrorState("Location Permission denied")
+                            MsLogger.d("RequestLocationPermission", "Location permission denied")
+                        },
+                        onPermanentlyDenied = {
+                            // If permission is permanently denied, update state and show dialog
+                            vm.updatePermissionState(PermissionState.PermanentlyDenied)
+                            vm.setHomeErrorState("Location Permission denied")
+                            shouldShowPermissionDialog.value = true // Show the dialog for permanent denial
+                            MsLogger.d("RequestLocationPermission", "Location permission permanently denied")
                         }
-                    }
+                    )
                 }
 
-                // Trigger permission request on launch
-                LaunchedEffect(vm.uiState.askPermission) {
-                    if (vm.uiState.askPermission) {
-                        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                    }
-                }
-
-                // Handle logic for when the permission is granted
-                LaunchedEffect(vm.uiState.permissionGranted) {
-                    if(vm.uiState.permissionGranted) {
-                        vm.uiState.askPermission = false
-                        fetchLocation(
-                            context = context,
-                            onLocationFetched = { lat, lon ->
-                                // Once location is fetched, set up weather request
-                                vm.uiState.weatherRequest = WeatherRequest(
-                                    lat = lat,
-                                    lon = lon
-                                )
-                                vm.uiState.loadData = true
-                            }
-                        )
-                    } else {
-                        // If permission is not granted, prompt the user to grant it
-                        vm.uiState.askPermission = true
-                    }
-                }
-
-                // Custom alert dialog for requesting permission
+                // Custom alert dialog for requesting permission if permanently denied
                 CustomAlertDialog(
                     shouldShowDialog = shouldShowPermissionDialog,
                     title = "Permission Required",
@@ -121,7 +114,9 @@ class HomeActivity : ComponentActivity() {
                                 data = Uri.fromParts("package", context.packageName, null)
                             }
                             it.startActivity(intent)
+                            MsLogger.d("PermissionDialog", "Navigating to app settings")
                         } ?: run {
+                            // Log if activity context is null
                             MsLogger.d("PermissionDialog", "Unable to open settings; activity context is null.")
                         }
                     }
@@ -129,6 +124,61 @@ class HomeActivity : ComponentActivity() {
 
                 // Navigation Host to handle screen navigation
                 WeatherAppNavHost(navController = navController, vm = vm)
+            }
+        }
+    }
+
+    /**
+     * A composable function to request location permission and handle the result.
+     *
+     * @param onGranted A lambda function invoked when the permission is granted.
+     * @param onDenied A lambda function invoked when the permission is denied, but not permanently.
+     * @param onPermanentlyDenied A lambda function invoked when the permission is permanently denied.
+     */
+    @Composable
+    fun RequestLocationPermission(
+        onGranted: () -> Unit,
+        onDenied: () -> Unit,
+        onPermanentlyDenied: () -> Unit
+    ) {
+        // Obtain the context from the composable current scope
+        val context = LocalContext.current
+
+        // Initialize a permission launcher to request location permission
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                MsLogger.d("RequestLocationPermission", "Permission granted")
+                onGranted() // Call the granted callback
+            } else {
+                // Check if the user has denied the permission but not permanently
+                val shouldShowRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                    context as Activity,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+                if (shouldShowRationale) {
+                    MsLogger.d("RequestLocationPermission", "Permission denied, showing rationale")
+                    onDenied() // Call the denied callback
+                } else {
+                    MsLogger.d("RequestLocationPermission", "Permission permanently denied")
+                    onPermanentlyDenied() // Call the permanently denied callback
+                }
+            }
+        }
+
+        // Request permission or verify current permission status on composition
+        LaunchedEffect(Unit) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                MsLogger.d("RequestLocationPermission", "Permission not granted, requesting...")
+                launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            } else {
+                MsLogger.d("RequestLocationPermission", "Permission already granted")
+                onGranted() // Permission already granted
             }
         }
     }
@@ -165,21 +215,16 @@ class HomeActivity : ComponentActivity() {
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        // If permission is granted, fetch location
+        // If permission is granted, fetch location and fetch weather data
         if (isPermissionGranted) {
-            vm.uiState.permissionGranted = true
-            vm.uiState.askPermission = false
+            vm.updatePermissionState(PermissionState.Granted)
             fetchLocation(
                 context = this,
                 onLocationFetched = { lat, lon ->
-                    vm.uiState.weatherRequest = WeatherRequest(lat = lat, lon = lon)
-                    vm.uiState.loadData = true
+                    vm.weatherRequest = WeatherRequest(lat = lat, lon = lon)
+                    vm.setLoadDataState(true)
                 }
             )
-        } else {
-            // If permission is not granted, prompt the user for permission
-            vm.uiState.permissionGranted = false
-            vm.uiState.askPermission = true
         }
     }
 
