@@ -1,6 +1,9 @@
+
 # Forecastery - Compose Clean Architecture with Hilt
 
 A modern Android application demonstrating a clean architecture approach, Jetpack Compose, and Hilt for dependency injection. This repository showcases best practices in Android development for building scalable, testable, and maintainable applications.
+
+---
 
 ## ✨ Features
 
@@ -28,7 +31,7 @@ A modern Android application demonstrating a clean architecture approach, Jetpac
 
 This project follows **Clean Architecture**, ensuring the following:
 
-1. **Presentation(UI) Layer**:
+1. **Presentation (UI) Layer**:
    - Contains `ViewModels` and UI-related logic using Jetpack Compose.
    - Handles state and events for the user interface.
 
@@ -59,18 +62,55 @@ Forecastery_Jetpack_Compose_Clean_Arch_Hilt/
 ## 📱 App Screens & Features
 
 1. **Home Screen**
-
-	-	Location Permission: If location access is required, users are prompted to grant permissions, and if denied, they are shown a custom dialog that directs them to the app settings to enable permissions.
-	-	Weather Overview: The main screen of the app shows the weather details for the user’s location or a selected district. It provides essential information like temperature, humidity, weather conditions, etc., in a clear, easy-to-read format.
-	-	Search Functionality: Users can search for a specific district to get weather details by tapping the search icon (magnifying glass) at the bottom. This opens the Search Screen where users can search and select a district.
-	-	Pull-to-Refresh: The screen supports pull-to-refresh to fetch the latest weather data.
-	-	Error Handling: In case of an error while fetching weather data, a dialog is displayed to notify the user of the failure, and retrying is possible.
+   - Location Permission: If location access is required, users are prompted to grant permissions, and if denied, they are shown a custom dialog that directs them to the app settings to enable permissions.
+   - Weather Overview: The main screen of the app shows the weather details for the user’s location or a selected district. It provides essential information like temperature, humidity, weather conditions, etc., in a clear, easy-to-read format.
+   - Search Functionality: Users can search for a specific district to get weather details by tapping the search icon (magnifying glass) at the bottom. This opens the Search Screen where users can search and select a district.
+   - Pull-to-Refresh: The screen supports pull-to-refresh to fetch the latest weather data.
+   - Error Handling: In case of an error while fetching weather data, a dialog is displayed to notify the user of the failure, and retrying is possible.
 
 2. **Search Screen**
+   - District Search: This screen allows users to search for a specific district (e.g., city, town) to get weather information. It contains a search bar at the top where users can type in the district name.
+   - District List: A list of districts is displayed below the search bar. The list is filtered as the user types in the search bar, and it allows selecting a district to view its weather.
+   - Current Location Option: The list also includes an option to use the user’s current location for weather details.
 
-	-	District Search: This screen allows users to search for a specific district (e.g., city, town) to get weather information. It contains a search bar at the top where users can type in the district name.
-	-	District List: A list of districts is displayed below the search bar. The list is filtered as the user types in the search bar, and it allows selecting a district to view its weather.
-	-	Current Location Option: The list also includes an option to use the user’s current location for weather details.
+---
+
+## 🛡 SOLID Principles in Action
+
+### Single Responsibility Principle (SRP)
+- **Definition**: A class should have only one reason to change.
+- **Application**:
+  - Each class or component in the architecture has a distinct responsibility:
+    - **ViewModel**: Manages UI-related state and handles user interactions.
+    - **Use Case**: Encapsulates a single piece of business logic (e.g., fetching weather data).
+    - **Repository**: Abstracts data sources and centralizes data handling.
+    - **API**: Handles network communication.
+  - This separation ensures that changes in one layer don’t affect others unnecessarily.
+
+### Open-Closed Principle (OCP)
+- **Definition**: Software entities should be open for extension but closed for modification.
+- **Application**:
+  - Adding new features (e.g., caching data or a new weather data source) can be done by extending the Repository implementation or introducing a new Use Case without modifying existing code.
+  - The sealed class (e.g., `WeatherState`) for state management allows extending new states without directly altering existing states.
+
+### Liskov Substitution Principle (LSP)
+- **Definition**: Subtypes must be substitutable for their base types.
+- **Application**:
+  - The `WeatherRepository` interface ensures any implementation (e.g., network-based, local database) can replace the default implementation (`WeatherRepositoryImpl`) without breaking the application logic.
+  - The domain layer depends only on abstractions (e.g., `WeatherRepository`), not concrete implementations.
+
+### Interface Segregation Principle (ISP)
+- **Definition**: Clients should not be forced to depend on methods they do not use.
+- **Application**:
+  - The `WeatherRepository` interface defines only the specific methods required by the domain layer (e.g., `getWeather()`), avoiding unnecessary methods.
+  - Each layer has its specific responsibilities and interfaces, keeping them focused and minimal.
+
+### Dependency Inversion Principle (DIP)
+- **Definition**: High-level modules should not depend on low-level modules. Both should depend on abstractions.
+- **Application**:
+  - The ViewModel depends on the Use Case, not the repository directly.
+  - The Use Case depends on the `WeatherRepository` abstraction, not the concrete implementation.
+  - Hilt injects dependencies, ensuring high-level modules are decoupled from low-level details.
 
 ---
 
@@ -99,5 +139,5 @@ Forecastery_Jetpack_Compose_Clean_Arch_Hilt/
 For any queries or suggestions, feel free to reach out:
 
 - **Md. Maksudur Rahaman**
-- [Linkedin Profile](https://www.linkedin.com/in/maksudmubin/)
+- [LinkedIn Profile](https://www.linkedin.com/in/maksudmubin/)
 - [GitHub Profile](https://github.com/maksudmubin)
