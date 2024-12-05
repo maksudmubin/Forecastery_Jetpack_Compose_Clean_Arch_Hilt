@@ -110,12 +110,12 @@ fun WeatherAppNavHost(
         composable(ScreenItem.Home.route) {
             // HomeScreen composable, passing uiState and functions for search and refresh actions
             HomeScreen(
-                vm = vm, // Pass the UI state to the home screen
+                vm = vm, // Pass the vm to the home screen
                 onSearchClick = {
                     navController.navigate(ScreenItem.Search.route) // Navigate to Search screen when search is clicked
                 },
                 onRefreshScreen = {
-                    vm.uiState.loadData = true // Refresh the weather data when the refresh action is triggered
+                    vm.setLoadDataState(true) // Refresh the weather data when the refresh action is triggered
                 }
             )
         }
@@ -132,16 +132,16 @@ fun WeatherAppNavHost(
                         scope.launch {
                             delay(400L) // Add a short delay before proceeding with the weather request
                             executeBodyOrReturnNullSuspended {
-                                // Executes weather request logic only if selectedDistrict is valid
+                                // Check if the item is current location
                                 if (selectedDistrict?.id == -1) {
-                                    vm.uiState.permissionGranted = false // Deny permission if invalid district is selected
+                                    vm.updatePermissionState(PermissionState.Requesting)
                                 } else {
                                     // Update the weather request with the selected district's coordinates
-                                    vm.uiState.weatherRequest = WeatherRequest(
+                                    vm.weatherRequest = WeatherRequest(
                                         lat = selectedDistrict?.coord?.lat ?: 0.0, // Latitude of the selected district
                                         lon = selectedDistrict?.coord?.lon ?: 0.0  // Longitude of the selected district
                                     )
-                                    vm.uiState.loadData = true // Trigger the data loading for the weather
+                                    vm.setLoadDataState(true) // Trigger the data loading for the weather
                                 }
                             }
                         }
@@ -170,30 +170,30 @@ fun HomeScreen(
     modifier: Modifier = Modifier // Modifier to customize the composable layout and appearance
 ) {
     // Remember the state for the pull-to-refresh feature
-    val pullRefreshState = rememberPullRefreshState(refreshing = vm.uiState.isHomeScreenLoading, onRefresh = onRefreshScreen)
+    val pullRefreshState = rememberPullRefreshState(refreshing = vm.homeState.value == WeatherState.Loading, onRefresh = onRefreshScreen)
 
     val shouldShowDialog = remember { mutableStateOf(false) } // State to control error dialog visibility
-    val scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope() // Coroutine scope for launching background tasks
+    val state by vm.homeState
 
     // Trigger data fetching only after the location is fetched
-    LaunchedEffect(vm.uiState.loadData) {
-        if (vm.uiState.loadData) {
+    LaunchedEffect(vm.loadData.value) {
+        if (vm.loadData.value) {
             scope.launch {
                 executeBodyOrReturnNullSuspended {
-                    vm.uiState.isHomeScreenLoading = true
-                    vm.uiState.weatherRequest?.let { request ->
+                    vm.setHomeLoadingState()
+                    vm.weatherRequest?.let { request ->
                         // Fetch weather details based on the location request
-                        val response = vm.getWeatherDetails(request)
-                        if (response == null) {
-                            MsLogger.d("HomeActivity", "Error fetching weather data")
-                            shouldShowDialog.value = true // Show error dialog if weather data fetching fails
+                        val result = vm.getWeatherDetails(request)
+                        if (result.isSuccess) {
+                            vm.setHomeSuccessState(result.getOrThrow()) // set success state with necessary data
                         } else {
-                            MsLogger.d("HomeActivity", "$response") // Log successful weather data retrieval
-                            vm.uiState.response = response
-                            vm.uiState.loadData = false
+                            MsLogger.d("HomeActivity", "Error fetching weather data")
+                            vm.setHomeErrorState(result.exceptionOrNull()?.message.toString()) // set error state with error message
+                            shouldShowDialog.value = true // Show error dialog if weather data fetching fails
                         }
+                        vm.setLoadDataState(false)
                     }
-                    vm.uiState.isHomeScreenLoading = false
                 }
             }
         }
@@ -240,26 +240,26 @@ fun HomeScreen(
                 .pullRefresh(pullRefreshState) // Enable pull-to-refresh functionality
                 .background(Background) // Background color or image for the screen
         ) {
-            // Display the loading shimmer effect while data is being fetched
-            if (vm.uiState.isHomeScreenLoading) {
-                HomeScreenShimmerLoading() // Shimmer effect for loading state
-            } else {
-                // Display different UI based on the presence of response data
-                when {
-                    vm.uiState.response == null -> NoDataState(vm.uiState) // No data available, show "No Data" state
-                    else -> vm.uiState.response?.let {
-                        WeatherContent( // Weather data available, show the actual content
-                            weatherResponse = it,
-                            onSearchClick = onSearchClick
-                        )
-                    }
+
+            when(state) {
+                is WeatherState.Loading -> HomeScreenShimmerLoading() // Shimmer effect for loading state
+                is WeatherState.Success -> {
+                    // Weather data available, show the actual content
+                    WeatherContent(
+                        weatherResponse = (state as WeatherState.Success).data,
+                        onSearchClick = onSearchClick
+                    )
                 }
+                is WeatherState.Error -> NoDataState( // No data available, show "No Data" state
+                    vm = vm,
+                    errorMessage = (state as WeatherState.Error).message ?: "No Data available"
+                )
             }
 
             // Uncomment the code below if you want to enable the pull-to-refresh indicator at the top
             /*
             PullRefreshIndicator(
-                refreshing = uiState.isLoading, // Show the refresh indicator when data is loading
+                refreshing = vm.homeState.value == WeatherState.Loading, // Show the refresh indicator when data is loading
                 state = pullRefreshState, // State of the pull-to-refresh feature
                 modifier = Modifier.align(Alignment.TopCenter) // Position it at the top center of the screen
             )
@@ -288,21 +288,24 @@ fun SearchScreen(
 
     val scope = rememberCoroutineScope() // Coroutine scope for launching background tasks
 
+    val state by vm.searchState
+
     // LaunchedEffect to load the district list if it's empty
     LaunchedEffect(Unit) {
-        if (vm.uiState.districtList.isEmpty()) {
+        if (vm.cachedDistrictList.isEmpty()) {
             scope.launch {
                 try {
-                    vm.uiState.isSearchScreenLoading = true // Set loading state to true while fetching data
-                    val districtList = vm.getDistrictList()
-                    if (districtList != null) {
-                        vm.uiState.districtList.addAll(districtList)
-                    } // Add all districts to the state list
+                    vm.setSearchLoadingState() // Set loading state to true while fetching data
+                    val result = vm.getDistrictList()
+                    if (result.isSuccess) {
+                        vm.setSearchSuccessState(result.getOrThrow()) // set success state with necessary data
+                    } else {
+                        vm.setSearchErrorState(result.exceptionOrNull()?.message.toString()) // set error state with error message
+                    }
                 } catch (e: Exception) {
                     // Handle any errors during the data loading
+                    vm.setSearchErrorState(e.message) // set error state with error message
                     MsLogger.e("SearchScreen", "Error loading district list: ${e.localizedMessage}")
-                } finally {
-                    vm.uiState.isSearchScreenLoading = false // Set loading to false after data is loaded
                 }
             }
         }
@@ -312,8 +315,8 @@ fun SearchScreen(
     var searchText by remember { mutableStateOf("") }
 
     // Filter the districts based on the search text
-    val filteredDistricts = if (searchText.isBlank()) vm.uiState.districtList else {
-        vm.uiState.districtList.filter { it.name.contains(searchText, ignoreCase = true) }
+    val filteredDistricts = if (searchText.isBlank()) vm.cachedDistrictList else {
+        vm.cachedDistrictList.filter { it.name.contains(searchText, ignoreCase = true) }
     }
 
     // Sort the districts, placing "My Current Location" at the top
@@ -345,34 +348,39 @@ fun SearchScreen(
                 .background(Background) // Set the background color
                 .fillMaxSize()
         ) {
-            // Show a loading indicator while the data is being fetched
-            if (vm.uiState.isSearchScreenLoading) {
-                // display shimmer loading effect
-                SearchScreenShimmerLoading(paddingValues)
-            } else {
-                // Display the district list inside a LazyColumn
-                LazyColumn(
-                    modifier = modifier
-                        .padding(paddingValues) // Apply padding values passed from Scaffold
-                        .fillMaxSize()
-                        .background(Background)
-                ) {
-                    // Render each district item
-                    items(sortedDistricts.size) { index ->
-                        DistrictItem(
-                            district = sortedDistricts[index], // Pass district data to the item composable
-                            onClick = {
-                                focusManager.clearFocus() // Clear focus on item click
-                                keyboardController?.hide() // Hide keyboard on item click
-                                onDistrictSelected(sortedDistricts[index]) // Notify the parent composable
+
+            // show appropriate UI according to the state
+            when(state) {
+                is SearchState.Loading -> SearchScreenShimmerLoading(paddingValues) // Shimmer effect for loading state
+                is SearchState.Success -> {
+                    // Display the district list inside a LazyColumn
+                    LazyColumn(
+                        modifier = modifier
+                            .padding(paddingValues) // Apply padding values passed from Scaffold
+                            .fillMaxSize()
+                            .background(Background)
+                    ) {
+                        // Render each district item
+                        items(sortedDistricts.size) { index ->
+                            DistrictItem(
+                                district = sortedDistricts[index], // Pass district data to the item composable
+                                onClick = {
+                                    focusManager.clearFocus() // Clear focus on item click
+                                    keyboardController?.hide() // Hide keyboard on item click
+                                    onDistrictSelected(sortedDistricts[index]) // Notify the parent composable
+                                }
+                            )
+                            // Add a divider between list items, except for the last item
+                            if (index < sortedDistricts.size - 1) {
+                                HorizontalDivider(color = Color.Gray, thickness = 1.dp)
                             }
-                        )
-                        // Add a divider between list items, except for the last item
-                        if (index < sortedDistricts.size - 1) {
-                            HorizontalDivider(color = Color.Gray, thickness = 1.dp)
                         }
                     }
                 }
+                is SearchState.Error -> NoDataState( // No data available, show "No Data" state
+                    vm = vm,
+                    errorMessage = (state as SearchState.Error).message ?: "No Data available"
+                )
             }
         }
     }
