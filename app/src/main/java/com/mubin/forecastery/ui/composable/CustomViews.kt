@@ -55,6 +55,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,10 +92,10 @@ import com.mubin.forecastery.base.utils.formatUnixTime
 import com.mubin.forecastery.base.utils.shimmerEffect
 import com.mubin.forecastery.data.model.DistrictModel
 import com.mubin.forecastery.domain.entities.WeatherEntity
-import com.mubin.forecastery.ui.home.HomeUiState
+import com.mubin.forecastery.ui.home.HomeViewModel
+import com.mubin.forecastery.ui.home.PermissionState
 import com.mubin.forecastery.ui.home.WeatherItem
 import java.util.Locale
-
 
 /**
  * Controls the visibility of the system status bar and its color.
@@ -652,10 +653,14 @@ fun SearchScreenShimmerLoading(paddingValues: PaddingValues) {
  * It shows a button to grant location permission if it is not granted,
  * or displays a message indicating the unavailability of weather data.
  *
- * @param uiState The state containing the necessary information, such as permission status.
+ * @param vm The viewmodel containing the necessary information, such as permission status.
+ * @param errorMessage A string value containing the error message to be displayed.
  */
 @Composable
-fun NoDataState(uiState: HomeUiState) {
+fun NoDataState(
+    vm: HomeViewModel,
+    errorMessage: String
+) {
     // Obtain the current context for navigation or intent usage
     val context = LocalContext.current
 
@@ -664,8 +669,18 @@ fun NoDataState(uiState: HomeUiState) {
         modifier = Modifier.fillMaxSize(), // Fills the entire screen
         contentAlignment = Alignment.Center // Centers content within the box
     ) {
-        // Conditional UI based on permission status
-        if (!uiState.permissionGranted) {
+        val permissionState by vm.permissionState
+
+        // check if location permission is granted and show appropriate UI
+        if (permissionState is PermissionState.Granted) {
+            Text(
+                text = errorMessage, // Message to inform the user
+                style = MaterialTheme.typography.bodyMedium.copy( // Applies medium typography style
+                    color = Color.LightGray // Sets a light gray color for the text
+                ),
+                textAlign = TextAlign.Center // Centers the text alignment
+            )
+        } else {
             // Button to guide users to grant location permissions
             Button(
                 onClick = {
@@ -692,15 +707,6 @@ fun NoDataState(uiState: HomeUiState) {
                     color = MaterialTheme.colorScheme.onPrimary // Text color adapts to the theme
                 )
             }
-        } else {
-            // Text displayed when permission is granted but no data is available
-            Text(
-                text = "No weather data available.", // Message to inform the user
-                style = MaterialTheme.typography.bodyMedium.copy( // Applies medium typography style
-                    color = Color.LightGray // Sets a light gray color for the text
-                ),
-                textAlign = TextAlign.Center // Centers the text alignment
-            )
         }
     }
 }
